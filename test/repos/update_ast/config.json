@@ -1,0 +1,16 @@
+{
+  "databaseConfig": {
+    "Host": "210.45.70.106",
+    "Port": 5432,
+    "Username": "postgres",
+    "Password": "s4plususer",
+    "Database": "go"
+  },
+  "sshConfig": {
+    "Host": "222.195.92.204",
+    "Port": 2422,
+    "Username": "lqw",
+    "PrivateKey": "/home/lqw/.ssh/ffi"
+  },
+  "reposDir" : "/data/github_go/repos"
+}
