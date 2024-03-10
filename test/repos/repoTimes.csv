@@ -1,8 +1,2 @@
 repo,执行时间
-CWE-369,00时00分06秒
-CWE-400,00时00分08秒
-CWE-525,00时00分30秒
-memacc,00时00分03秒
-assignToInterface,00时00分03秒
-update_ast,00时00分17秒
-CWE-807,00时00分11秒
+convInterface,00时00分06秒

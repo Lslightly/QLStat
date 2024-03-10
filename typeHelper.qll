@@ -63,7 +63,7 @@ int typeSize(Type type) {
             */
             result = 24
         else if t instanceof StructType then
-            if exists(Field f| f = t.getField(_) and -1 = typeSize(f.getType())) then
+            if exists(Field f| isTypeSizeKnown(f.getType()) = false) then
                 result = -1
             else
                 result = sum(Field f| f = t.getField(_)|typeSize(f.getType()))
@@ -113,9 +113,9 @@ Boolean isTypeSizeKnown(Type type) {
             */
             result = true
         else if t instanceof StructType then
-            if exists(string i| isTypeSizeKnown(t.getField(i).getType()) = false and t.getField(i).getType() != type) then
-                result = false
-            else
+            // if exists(string i| isTypeSizeKnown(t.getField(i).getType()) = false and t.getField(i).getType() != type) then
+            //     result = false
+            // else
                 result = true
         else if t instanceof PointerType then
             result = true
