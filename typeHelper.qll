@@ -128,6 +128,10 @@ Boolean isTypeSizeKnown(Type type) {
              */
             result = true
         else
+            /*
+             * map
+             * channel
+             */
             result = false
     )
 }
