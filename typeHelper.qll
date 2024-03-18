@@ -35,15 +35,15 @@ int pointerDepthFn(Type type, Boolean noTypeAlias) {
 language[monotonicAggregates]
 int typeSize(Type type) {
     exists(Type t | type.getUnderlyingType() = t |
-        if t instanceof BoolType then
+        t instanceof BoolType and
             result = 8
-        else if t instanceof IntegerType then
+        or t instanceof IntegerType and
             result = 8
-        else if t instanceof UintptrType then
+        or t instanceof UintptrType and
             result = 8
-        else if t instanceof NumericType then
+        or t instanceof NumericType and not (t instanceof IntegerType) and
             result = t.(NumericType).getASize() / 8
-        else if t instanceof StringType then
+        or t instanceof StringType and
             /*
             * struct {
             *  header  unsafe.Pointer
@@ -51,9 +51,9 @@ int typeSize(Type type) {
             * }
             */
             result = 16
-        else if t instanceof ArrayType then
+        or t instanceof ArrayType and
             result = forwardUnknown(t.(ArrayType).getLength() * typeSize(t.(ArrayType).getElementType()), typeSize(t.(ArrayType).getElementType()))
-        else if t instanceof SliceType then
+        or t instanceof SliceType and
             /*
             * struct {
             *  header  unsafe.Pointer
@@ -62,23 +62,37 @@ int typeSize(Type type) {
             * }
             */
             result = 24
-        else if t instanceof StructType then
-            if exists(Field f| isTypeSizeKnown(f.getType()) = false) then
+        or t instanceof StructType and
+            (
+                exists(Field f| f = t.getField(_) and -1 = typeSize(f.getType())) and
                 result = -1
-            else
+            or
+                forall(Field f | f = t.getField(_) | typeSize(f.getType()) != -1) and
                 result = sum(Field f| f = t.getField(_)|typeSize(f.getType()))
-        else if t instanceof PointerType then
+            )
+        or t instanceof PointerType and
             result = 8
-        else if t instanceof SignatureType then
-            result = getASizeForSigatureType(t.(SignatureType))
-        else if t instanceof InterfaceType then
+        or t instanceof SignatureType and
+            result = 16
+        or t instanceof InterfaceType and
             /*
              * type descriptor
              * data
              */
             result = 16
-        else
-            result = -1 // -1 means unknown
+        or not (
+            t instanceof BoolType or
+            t instanceof IntegerType or
+            t instanceof UintptrType or
+            t instanceof NumericType or
+            t instanceof StringType or
+            t instanceof ArrayType or
+            t instanceof SliceType or
+            t instanceof StructType or
+            t instanceof PointerType or
+            t instanceof SignatureType or
+            t instanceof InterfaceType
+        ) and result = -1 // -1 means unknown
     )
 }
 
