@@ -1,3 +1,13 @@
+## ql使用说明
+
+1. 安装codeql，加入PATH中。
+2. 以下步骤在不知道脚本在干什么的情况下均不要使用**默认参数**
+   1. 使用[codeql_build dirBuild.sh](http://222.195.92.204:1480/vm/empirical-go/-/blob/master/scripts/codeql_build/dirBuild.sh?ref_type=heads)构建仓库数据库
+   2. 使用[codeql qdriver](http://222.195.92.204:1480/vm/empirical-go/-/tree/master/scripts/codeql_qdriver?ref_type=heads)以及编写相应的查询配置文件进行查询
+   3. 使用[codeql result parser](http://222.195.92.204:1480/vm/empirical-go/-/tree/master/scripts/codeql_result_parser?ref_type=heads)以及编写相应的分析方式对分析结果进行汇总分析
+
+## ql说明
+
 用于存储Go语言相关的codeql-queries
 
 - [连续解引用`**p`](../codeql-queries/consecutiveDerefTimes.ql)
