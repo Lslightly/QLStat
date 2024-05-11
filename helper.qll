@@ -12,6 +12,14 @@ predicate isFieldAccess(Expr expr) {
     expr instanceof SelectorExpr and not (expr.(SelectorExpr).getSelector() instanceof FunctionName)
 }
 
+predicate isMethodCall(Expr expr) {
+    expr instanceof SelectorExpr and (expr.(SelectorExpr).getSelector() instanceof FunctionName)
+}
+
+Function funcOfMethodCall(SelectorExpr mcall) {
+    result = mcall.getSelector().(FunctionName).getTarget()
+}
+
 /**
  * x.f is short hand for (*x).f
  */
