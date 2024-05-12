@@ -16,7 +16,7 @@ predicate isMethodCall(Expr expr) {
     expr instanceof SelectorExpr and (expr.(SelectorExpr).getSelector() instanceof FunctionName)
 }
 
-Function funcOfMethodCall(SelectorExpr mcall) {
+Function targetOfMCall(SelectorExpr mcall) {
     result = mcall.getSelector().(FunctionName).getTarget()
 }
 
