@@ -7,6 +7,7 @@ package pkgcall
 import (
 	"fmt"
 	"math/big"
+	"testing"
 )
 
 // Use the classic continued fraction for e
@@ -65,4 +66,8 @@ func Example_eConvergents() {
 	// 25946/9545    = 2.71828182
 	// 49171/18089   = 2.71828183
 	// 517656/190435 = 2.71828183
+}
+
+func BenchmarkB(t *testing.B) {
+	print("BenchmarkB")
 }
