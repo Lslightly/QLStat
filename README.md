@@ -6,6 +6,18 @@
    2. 使用[codeql qdriver](http://222.195.92.204:1480/vm/empirical-go/-/tree/master/scripts/codeql_qdriver?ref_type=heads)以及编写相应的查询配置文件进行查询
    3. 使用[codeql result parser](http://222.195.92.204:1480/vm/empirical-go/-/tree/master/scripts/codeql_result_parser?ref_type=heads)以及编写相应的分析方式对分析结果进行汇总分析
 
+以`pkgcall`的测试为例：
+
+```bash
+cd codeql_build
+./dirBuild.sh -repo pkgcall -o pkgcall.csv -l go -db <输出数据库的根目录> <待分析仓库根目录，这里为codeql-queries/test/repos>
+
+cd codeql_qdriver
+./qdriver -c test_pkgcall.yaml # 需要修改InDBRoot为上一个脚本的Root，修改QueryRoot和OutResultRoot
+
+cd 
+```
+
 ## ql说明
 
 用于存储Go语言相关的codeql-queries

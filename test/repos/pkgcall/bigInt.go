@@ -68,6 +68,6 @@ func Example_eConvergents() {
 	// 517656/190435 = 2.71828183
 }
 
-func BenchmarkB(t *testing.B) {
+func BenchmarkInBigInt(t *testing.B) {
 	print("BenchmarkB")
 }
