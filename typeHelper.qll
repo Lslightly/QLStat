@@ -37,12 +37,16 @@ int typeSize(Type type) {
     exists(Type t | type.getUnderlyingType() = t |
         t instanceof BoolType and
             result = 8
-        or t instanceof IntegerType and
+        or t instanceof IntType and
             result = 8
+        or t instanceof UintType and
+            result = 8
+        or t instanceof IntegerType and
+            result = t.(IntegerType).getSize() / 8
         or t instanceof UintptrType and
             result = 8
         or t instanceof NumericType and not (t instanceof IntegerType) and
-            result = t.(NumericType).getASize() / 8
+            result = t.(NumericType).getSize() / 8
         or t instanceof StringType and
             /*
             * struct {
@@ -82,6 +86,8 @@ int typeSize(Type type) {
             result = 16
         or not (
             t instanceof BoolType or
+            t instanceof IntType or
+            t instanceof UintType or
             t instanceof IntegerType or
             t instanceof UintptrType or
             t instanceof NumericType or
