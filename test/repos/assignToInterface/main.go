@@ -24,6 +24,8 @@ func main() {
 func assignToEface() {
 	var eface Eface
 	var i2 interface{}
+	var iface Iface
+	eface = iface
 	eface = true
 	a := 1
 	eface = a

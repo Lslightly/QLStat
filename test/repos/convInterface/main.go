@@ -25,6 +25,7 @@ func assign() {
 
 func assignToEface() {
 	var eface Eface
+	var iface Iface
 	var i2 interface{}
 	eface = true
 	a := 1
@@ -50,6 +51,7 @@ func assignToEface() {
 	eface = f
 	i2 = s
 	eface = i2
+	eface = iface
 	m := map[int]string{
 		1: "1",
 		2: "2",
