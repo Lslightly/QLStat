@@ -8,10 +8,10 @@
 [0] .
 ├── [1] README.md
 ├── [2] concat.csv # 原始数据
-└── [3] concat_manual_mark.csv # 人工确认检测到的代码是否符合sliceNotSetNil模式(WEF-sliceExpr)，添加一列manual-check，如果为true，则表示人工确认代码模式确实是有可能存在问题的。如果为false，则检测存在问题，有一些实际上会
+└── [3] concat_manual_annotated.csv # 人工确认检测到的代码是否符合sliceNotSetNil模式(WEF-sliceExpr)，添加一列manual-check，如果为true，则表示人工确认代码模式确实是有可能存在问题的。如果为false，则检测存在问题，有一些实际上会
 ```
 
-在[concat_manual_mark.csv](concat_manual_mark.csv)添加两列为，一列为manualCheck，一列为improveChance。
+在[concat_manual_annotated.csv](concat_manual_annotated.csv)添加两列为，一列为manualCheck，一列为improveChance。
 - manualCheck为bool类型。如果为false，则表示报告是误报，如果为true，则为正确的报告。
 - improveChange为bool类型。只有当manualCheck是false，即报告是误报的时候才可能为true，表示静态分析工具有可提升的可能。
 
