@@ -19,7 +19,7 @@
 1. 被切对象(`s[start:]`中0~start-1部分的对象)的引用是否在当前函数外就消失了，如果消失，则报告正确，如果没有消失，则报告错误
    1. 如果有其他变量引用被切对象(如果是获得被切对象的域值，不算引用)，则当变量可能逃出函数作用域时报告错误，否则按照没有其他变量引用被切对象处理
    2. 如果没有其他变量引用被切对象，则
-      1. 如果slice后面有append，则报告错误
+      1. 如果切片表达式之后的控制流可能到达append函数，则报告错误
          1. 如果append添加的元素引用被切对象，那set不set nil无所谓，报告错误。如果没有引用，那也多报了，报告错误。
       2. 如果没有append，则报告正确
 
@@ -28,114 +28,116 @@
 /data/github_go/repos/EasyDarwin/rtsp/pusher.go:266 被局部变量引用，但是可能逃出函数。
 
 ```go
-			pack = pusher.queue[0]
-			pusher.queue = pusher.queue[1:]
-            ...
-            pusher.BroadcastRTP(pack)
+pack = pusher.queue[0]
+pusher.queue = pusher.queue[1:]
+...
+pusher.BroadcastRTP(pack)
 ```
 
+/data/github_go/repos/beats/libbeat/publisher/queue/diskqueue/queue.go:190 被append到其他对象中
+
 ```go
-	for len(initialSegments) > 0 && initialSegments[0].id < readSegmentID {
-		ackedSegments = append(ackedSegments, initialSegments[0])
-		initialSegments = initialSegments[1:]
-	}
+for len(initialSegments) > 0 && initialSegments[0].id < readSegmentID {
+	ackedSegments = append(ackedSegments, initialSegments[0])
+	initialSegments = initialSegments[1:]
+}
 ```
 
 /data/github_go/repos/benthos/internal/impl/aws/input_kinesis.go:533 不同的局部变量assign方式`range`
 
 ```go
-					var r *kinesis.Record
-					for i, r = range pending {
-						if recordBatcher.AddRecord(r) {
-							if pendingMsg, err = recordBatcher.FlushMessage(commitCtx); err != nil {
-								k.log.Errorf("Failed to dispatch message due to checkpoint error: %v\n", err)
-							}
-							break
-						}
-					}
-					if pending = pending[i+1:]; len(pending) == 0 {
-						unblockPullChan()
-					}
+var r *kinesis.Record
+for i, r = range pending {
+	if recordBatcher.AddRecord(r) {
+		if pendingMsg, err = recordBatcher.FlushMessage(commitCtx); err != nil {
+			k.log.Errorf("Failed to dispatch message due to checkpoint error: %v\n", err)
+		}
+		break
+	}
+}
+if pending = pending[i+1:]; len(pending) == 0 {
+	unblockPullChan()
+}
 ```
 
 /data/github_go/repos/benthos/internal/impl/aws/input_sqs.go:309 assign方式`send`
 
 ```go
-		case a.messagesChan <- pendingMsgs[0]:
-			pendingMsgs = pendingMsgs[1:]
+case a.messagesChan <- pendingMsgs[0]:
+	pendingMsgs = pendingMsgs[1:]
 ```
 
 /data/github_go/repos/benthos/internal/impl/aws/input_s3.go:397 局部变量被return
 
 ```go
-	obj := s.pending[0]
-	s.pending = s.pending[1:]
-	return obj, nil
+obj := s.pending[0]
+s.pending = s.pending[1:]
+return obj, nil
 ```
 
 /data/github_go/repos/aws-nuke/resources/elb-elb.go:62 `elbNames[:requestElements]`被作为参数传入函数。
 
 ```go
-		requestElements := len(elbNames)
-		if requestElements > 20 {
-			requestElements = 20
-		}
+requestElements := len(elbNames)
+if requestElements > 20 {
+	requestElements = 20
+}
 
-		tagResp, err := svc.DescribeTags(&elb.DescribeTagsInput{
-			LoadBalancerNames: elbNames[:requestElements],
-		})
-		if err != nil {
-			return nil, err
-		}
-		for _, elbTagInfo := range tagResp.TagDescriptions {
-			elb := elbNameToRsc[*elbTagInfo.LoadBalancerName]
-			resources = append(resources, &ELBLoadBalancer{
-				svc:  svc,
-				elb:  elb,
-				tags: elbTagInfo.Tags,
-			})
-		}
+tagResp, err := svc.DescribeTags(&elb.DescribeTagsInput{
+	LoadBalancerNames: elbNames[:requestElements],
+})
+if err != nil {
+	return nil, err
+}
+for _, elbTagInfo := range tagResp.TagDescriptions {
+	elb := elbNameToRsc[*elbTagInfo.LoadBalancerName]
+	resources = append(resources, &ELBLoadBalancer{
+		svc:  svc,
+		elb:  elb,
+		tags: elbTagInfo.Tags,
+	})
+}
 
-		// Remove the elements that were queried
-		elbNames = elbNames[requestElements:]
+// Remove the elements that were queried
+elbNames = elbNames[requestElements:]
 ```
 
 /data/github_go/repos/benthos/internal/impl/aws/input_s3.go:635
 
 ```go
-	for len(dudMessageHandles) > 0 {
-		input := sqs.ChangeMessageVisibilityBatchInput{
-			QueueUrl: aws.String(s.conf.SQS.URL),
-			Entries:  dudMessageHandles,
-		}
-
-		// trim input entries to max size
-		if len(dudMessageHandles) > 10 {
-			input.Entries, dudMessageHandles = dudMessageHandles[:10], dudMessageHandles[10:]
-		} else {
-			dudMessageHandles = nil
-		}
-		_, _ = s.sqs.ChangeMessageVisibilityBatch(&input)
+for len(dudMessageHandles) > 0 {
+	input := sqs.ChangeMessageVisibilityBatchInput{
+		QueueUrl: aws.String(s.conf.SQS.URL),
+		Entries:  dudMessageHandles,
 	}
+
+	// trim input entries to max size
+	if len(dudMessageHandles) > 10 {
+		input.Entries, dudMessageHandles = dudMessageHandles[:10], dudMessageHandles[10:]
+	} else {
+		dudMessageHandles = nil
+	}
+	_, _ = s.sqs.ChangeMessageVisibilityBatch(&input)
+}
 ```
 
 
 /data/github_go/repos/LeetCode-Go/leetcode/0102.Binary-Tree-Level-Order-Traversal/102. Binary Tree Level Order Traversal.go:38 被切对象还在其他对象中引用。
 
 ```go
-		l := len(queue)
-		tmp := make([]int, 0, l)
-		for i := 0; i < l; i++ {
-			if queue[i].Left != nil {
-				queue = append(queue, queue[i].Left)
-			}
-			if queue[i].Right != nil {
-				queue = append(queue, queue[i].Right)
-			}
-			tmp = append(tmp, queue[i].Val)
-		}
-		queue = queue[l:]
-		res = append(res, tmp)
+l := len(queue)
+tmp := make([]int, 0, l)
+for i := 0; i < l; i++ {
+	if queue[i].Left != nil {
+		queue = append(queue, queue[i].Left)
+	}
+	if queue[i].Right != nil {
+		queue = append(queue, queue[i].Right)
+	}
+	tmp = append(tmp, queue[i].Val)
+}
+queue = queue[l:]
+res = append(res, tmp)
 ```
 
 > /data/github_go/repos/LeetCode-Go/leetcode有较多上述这种前面拿出来放到后面的情况
@@ -143,39 +145,39 @@
 /data/github_go/repos/LeetCode-Go/leetcode/0559.Maximum-Depth-of-N-ary-Tree/559.Maximum Depth of N-ary Tree.go:24 其中`ele`实际上并没有整体被其他对象引用，只有`Children`slice value被copy了，这单个结点是可以释放的，积少成多。不过q已经被append了。
 
 ```go
-		for length != 0 {
-			ele := q[0]
-			q = q[1:]
-			length--
-			if ele != nil && len(ele.Children) != 0 {
-				q = append(q, ele.Children...)
-			}
-		}
+for length != 0 {
+	ele := q[0]
+	q = q[1:]
+	length--
+	if ele != nil && len(ele.Children) != 0 {
+		q = append(q, ele.Children...)
+	}
+}
 ```
 
 /data/github_go/repos/VictoriaMetrics/lib/logstorage/storage.go:324 在for循环里面set nil，不属于同一个block，这种情况是好情况。
 
 ```go
-		for i := range ptwsToDelete {
-			s.partitions[i] = nil
-		}
-		s.partitions = s.partitions[len(ptwsToDelete):]
+for i := range ptwsToDelete {
+	s.partitions[i] = nil
+}
+s.partitions = s.partitions[len(ptwsToDelete):]
 ```
 
 /data/github_go/repos/VictoriaMetrics/lib/logstorage/storage_search.go:157 ptws实际上是其他slice的切片，只是用来做统计操作，set nil没有意义。
 
 ```go
-	ptws := s.partitions
-	minDay := tf.minTimestamp / nsecPerDay
-	n := sort.Search(len(ptws), func(i int) bool {
-		return ptws[i].day >= minDay
-	})
-	ptws = ptws[n:]
-	maxDay := tf.maxTimestamp / nsecPerDay
-	n = sort.Search(len(ptws), func(i int) bool {
-		return ptws[i].day > maxDay
-	})
-	ptws = ptws[:n]
+ptws := s.partitions
+minDay := tf.minTimestamp / nsecPerDay
+n := sort.Search(len(ptws), func(i int) bool {
+	return ptws[i].day >= minDay
+})
+ptws = ptws[n:]
+maxDay := tf.maxTimestamp / nsecPerDay
+n = sort.Search(len(ptws), func(i int) bool {
+	return ptws[i].day > maxDay
+})
+ptws = ptws[:n]
 ```
 
 /data/github_go/repos/VictoriaMetrics/lib/mergeset/table.go:563 pws实际上函数传递的参数，调用者可能还有对被切对象的引用。
@@ -265,6 +267,6 @@ func (iter *s3DeleteVersionListIterator) Next() bool {
 /data/github_go/repos/beego/server/web/server.go:393 slice值判断存在问题
 
 ```go
-						entryPointTree.fixrouters[i].leaves[0] = nil
-						entryPointTree.fixrouters[i].leaves = entryPointTree.fixrouters[i].leaves[1:]
+entryPointTree.fixrouters[i].leaves[0] = nil
+entryPointTree.fixrouters[i].leaves = entryPointTree.fixrouters[i].leaves[1:]
 ```
