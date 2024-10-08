@@ -1,5 +1,19 @@
 # sliceNotSetNil结果
 
+## propose_issues_and_replies
+
+[propose_issues_and_replies](./propose_issues_and_replies.csv)是对issue以及回复的记录。
+
+列名|类型|含义
+--|--|--
+repo|string|仓库名称，需要为全称fullname，即携带org或者user
+linterCodePos|string|是检查器报告的位置
+issueCodePos|string|是issue报告的位置
+issue_url|string|issue地址
+anyReply|bool|issue是否有回复，如果有，则为true，如果没有，则为false
+replyResult|int|issue的返回结果，1则表示确定是bug，0表示确定不是bug,2表示不知道
+
+
 ## commit #14863849
 
 这里是commit #14863849的结果。文件说明如下。
