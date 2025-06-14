@@ -51,3 +51,19 @@ codeql官方提供查询语句
   - 通过修改Cache-Control Header将受害者访问的网站cache到所有用户中。
 - [SensitiveConditionBypass](../codeql-queries/CWE-807/SensitiveConditionBypass.ql)
   - 一些条件语句中包含和关键信息比对相关的东西，如密码比较，如果正确，则进入if分支。这种可能可以通过某种方式绕过，存在安全隐患。
+
+## codeql build
+
+使用 [dirBuild.sh](./dirBuild.sh) 构建codeql数据库
+
+## codeql qdriver
+
+通过编写 yaml 配置文件，指定要查询的数据库、查询语句、输出结果等，使用 [qdriver](./cmd/codeql_qdriver/qdriver) 运行查询。
+
+## codeql result parser
+
+使用 [qParser](./cmd/codeql_result_parser/qParser) 解析查询结果，并收集整合到csv文件中。
+
+## codeql rename query
+
+使用 [codeql_rename](./cmd/codeql_rename_query/codeql_rename) 对查询语句进行重命名，同时重命名结果目录。

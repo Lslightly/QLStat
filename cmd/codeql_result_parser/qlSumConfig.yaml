@@ -1,0 +1,166 @@
+entries:
+  - name: consecutiveDerefTimes
+    cnt: &groupbycounter1
+      fn: GroupByCounter
+      args:
+      - 1
+  - name: consecutiveFieldAccTimes
+    cnt:
+      <<: *groupbycounter1
+
+  - name: variableAcc
+    cnt: &counter
+      fn: Counter
+      args:
+  - name: derefAcc
+    cnt:
+      <<: *counter
+  - name: refAcc
+    cnt:
+      <<: *counter
+  - name: fieldAcc
+    cnt:
+      <<: *counter
+  - name: sliceIdx
+    cnt:
+      <<: *counter
+  - name: arrayIdx
+    cnt:
+      <<: *counter
+  - name: mapIdx
+    cnt:
+      <<: *counter
+
+  # - name: nonEffectUpdateToMember
+  #   cnt:
+  #     <<: *counter
+  # - name: pointer-type-level
+  #   cnt:
+  #     <<: *groupbycounter1
+  # - name: varType
+  #   cnt: 
+  #     fn: GroupByCounter
+  #     args:
+  #       - 0
+
+  # - name: lhsDeref
+  #   cnt: &counter
+  #     fn: Counter
+  #     args: []
+  # - name: lhsNoDeref
+  #   cnt:
+  #     <<: *counter
+  # - name: nonPtrAssignToInterface
+  #   cnt:
+  #     fn: GroupByCounter
+  #     args:
+  #       - 2
+  # - name: nonPtrAssignToInterface
+  #   cnt:
+  #     fn: Counter
+  #     args: []
+  # - name: ptrAssignToInterface
+  #   cnt:
+  #     fn: Counter
+  #     args: []
+
+  # - name: loc
+  #   cnt: &concator
+  #     fn: Concator
+  #     args: []
+  # - name: locOfFilesAnalyzed
+  #   cnt:
+  #     <<: *concator
+  # - name: codeql-ql-src/DatabaseCallInLoop
+  #   cnt:
+  #     <<: *concator
+  # - name: codeql-ql-src/DivideByZero
+  #   cnt:
+  #     <<: *concator
+  # - name: CWE-525/WebCacheDeception
+  #   cnt:
+  #     <<: *concator
+  # - name: CWE-807/SensitiveConditionBypass
+  #   cnt:
+  #     <<: *concator
+
+  - name: convInterface/assign
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/call
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/conversion
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/ret
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/send
+    cnt:
+      fn: GroupByCounter
+      args: [2]
+  - name: convInterface/assignInterface
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/assignNonPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/assignPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/callInterface
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/callNonPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/callPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/conversionInterface
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/conversionNonPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/conversionPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/retInterface
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/retNonPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/retPtr
+    cnt:
+      fn: GroupByCounter
+      args: [3]
+  - name: convInterface/sendInterface
+    cnt:
+      fn: GroupByCounter
+      args: [2]
+  - name: convInterface/sendNonPtr
+    cnt:
+      fn: GroupByCounter
+      args: [2]
+  - name: convInterface/sendPtr
+    cnt:
+      fn: GroupByCounter
+      args: [2]

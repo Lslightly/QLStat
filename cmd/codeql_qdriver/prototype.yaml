@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+InDBRoot: /data/github_go/pattern/examples/prototype/codeql-db
+Repos: []
+QueryRoot: ../../codeql-queries
+Queries:
+  - sliceExprNotSetNil.ql
+OutResultRoot: /data/github_go/pattern/examples/prototype/codeqlResult
+ErrorLog: error.log
+ParallelCore: 20

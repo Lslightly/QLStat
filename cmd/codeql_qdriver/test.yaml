@@ -1,0 +1,44 @@
+%YAML 1.2
+---
+InDBRoot: ../../codeql-queries/test/codeql-db
+Repos: [convInterface]
+QueryRoot: ../../codeql-queries
+Queries:
+  # - consecutiveDerefTimes.ql
+  # - consecutiveFieldAccTimes.ql
+
+  # - variableAcc.ql
+  # - derefAcc.ql
+  # - refAcc.ql
+  # - fieldAcc.ql
+  # - sliceIdx.ql
+  # - arrayIdx.ql
+  # - mapIdx.ql
+
+  # - nonEffectUpdateToMember.ql
+  # - pointer-type-level.ql
+  # - varType.ql
+  # - lhsDeref.ql
+  # - lhsNoDeref.ql
+  # - nonPtrAssignToInterface.ql
+  # - ptrAssignToInterface.ql
+
+  # - loc.ql
+  # - locOfFilesAnalyzed.ql
+  # - codeql-ql-src/DatabaseCallInLoop.ql
+  # - codeql-ql-src/DivideByZero.ql
+  # - CWE-525/WebCacheDeception.ql
+  # - CWE-807/SensitiveConditionBypass.ql
+
+  # - convInterface/assign.ql
+  # - convInterface/call.ql
+  # - convInterface/conversion.ql
+  # - convInterface/ret.ql
+  # - convInterface/send.ql
+  - convInterface/assignType.ql
+
+  # dataflow
+  # - dataflow/intraResourceLeakTry.ql
+OutResultRoot: ../../codeql-queries/test/codeqlResult
+ErrorLog: error.log
+ParallelCore: 2

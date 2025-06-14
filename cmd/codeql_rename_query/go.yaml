@@ -1,0 +1,9 @@
+%YAML 1.2
+---
+QueryRoot: ../../codeql-queries
+Queries:
+  - old: pointer-type-level
+    new: variableAcc
+ResultRoots:
+  # - /data/github_go/codeqlResult
+  - ../../codeql-queries/test/codeqlResult

@@ -1,0 +1,94 @@
+entries:
+  # - name: consecutiveDerefTimes
+  #   cnt: &groupbycounter1
+  #     fn: GroupByCounter
+  #     args:
+  #     - 1
+  # - name: consecutiveFieldAccTimes
+  #   cnt:
+  #     <<: *groupbycounter1
+
+  # - name: variableAcc
+  #   cnt: &counter
+  #     fn: Counter
+  #     args: []
+  # - name: derefAcc
+  #   cnt:
+  #     <<: *counter
+  # - name: refAcc
+  #   cnt:
+  #     <<: *counter
+  # - name: fieldAcc
+  #   cnt:
+  #     <<: *counter
+  # - name: sliceIdx
+  #   cnt:
+  #     <<: *counter
+  # - name: arrayIdx
+  #   cnt:
+  #     <<: *counter
+  # - name: mapIdx
+  #   cnt:
+  #     <<: *counter
+
+  # - name: nonEffectUpdateToMember
+  #   cnt:
+  #     <<: *counter
+  # - name: pointer-type-level
+  #   cnt:
+  #     <<: *groupbycounter1
+  # - name: varType
+  #   cnt: 
+  #     fn: GroupByCounter
+  #     args:
+  #       - 0
+
+  # - name: lhsDeref
+  #   cnt: &counter
+  #     fn: Counter
+  #     args: []
+  # - name: lhsNoDeref
+  #   cnt:
+  #     <<: *counter
+  # - name: nonPtrAssignToInterface
+  #   cnt:
+  #     <<: *counter
+  # - name: ptrAssignToInterface
+  #   cnt:
+  #     <<: *counter
+  # - name: loc
+  #   cnt: &concator
+  #     fn: Concator
+  #     args: []
+  # - name: locOfFilesAnalyzed
+  #   cnt:
+  #     <<: *concator
+  # - name: codeql-ql-src/DatabaseCallInLoop
+  #   cnt:
+  #     <<: *concator
+  # - name: codeql-ql-src/DivideByZero
+  #   cnt:
+  #     <<: *concator
+  # - name: CWE-525/WebCacheDeception
+  #   cnt:
+  #     <<: *concator
+  # - name: CWE-807/SensitiveConditionBypass
+  #   cnt:
+  #     <<: *concator
+
+  - name: convInterface/assign
+    cnt: &concator
+      fn: Concator
+      args: []
+  - name: convInterface/call
+    cnt:
+      <<: *concator
+  - name: convInterface/conversion
+    cnt:
+      <<: *concator
+  - name: convInterface/ret
+    cnt:
+      <<: *concator
+  - name: convInterface/send
+    cnt:
+      <<: *concator

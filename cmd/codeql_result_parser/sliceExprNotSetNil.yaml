@@ -1,0 +1,5 @@
+entries:
+  - name: sliceExprNotSetNil
+    cnt: &concator
+      fn: Concator
+      args: []
