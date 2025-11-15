@@ -20,6 +20,15 @@ type Artifact struct {
 	Lang         string      `yaml:"language"`
 	BuildTimeout int         `yaml:"buildTimeout"`
 	BuildRepos   []string    `yaml:"buildRepos"` // ["-"] indicates all repositories
+	QueryConfig  `yaml:"queryconfig"`
+}
+
+type QueryConfig struct {
+	ResultRoot   string   `yaml:"resultRoot"`
+	QueryRepos   []string `yaml:"queryRepos"`
+	QueryRoot    string   `yaml:"queryRoot"`
+	Queries      []string `yaml:"queries"`
+	ParallelCore int      `yaml:"parallelCore"`
 }
 
 var Nowstr string = time.Now().Local().Format("0102-030405")

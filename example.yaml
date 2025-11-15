@@ -16,3 +16,12 @@ buildRepos:
   - "-"
 
 # query
+queryconfig:
+  resultRoot: codeqlResult
+  queryRepos:
+    - "-"
+  queryRoot: qlsrc
+  queries:
+    - convInterface/assign.ql
+    - convInterface/call.ql
+  parallelCore: 20
