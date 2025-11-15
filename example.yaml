@@ -1,0 +1,18 @@
+logRoot: logs
+repoRoot: repos
+dbRoot: codeql-db
+
+# clone
+sources:
+  - prefix: https://github.com/
+    fullnames:
+      - junegunn/fzf
+      - gookit/filter
+
+# build
+language: go
+buildTimeout: 3600
+buildRepos:
+  - "-"
+
+# query

@@ -1,4 +1,4 @@
-module qlstat
+module github.com/Lslightly/qlstat
 
 go 1.24.2
 
