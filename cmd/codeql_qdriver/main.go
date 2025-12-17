@@ -3,14 +3,17 @@ package main
 import (
 	"bytes"
 	"context"
+	"encoding/csv"
 	"flag"
 	"fmt"
+	"io"
 	"io/fs"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -33,12 +36,14 @@ var (
 	configPath      string
 	targetDecodeFmt string
 	onlyDecode      bool
+	doCollect       bool
 )
 
 func init() {
 	flag.StringVar(&configPath, "c", "./go.yaml", "the configuration file")
 	flag.StringVar(&targetDecodeFmt, "format", "csv", "target format of decode, including text, csv, json, bqrs")
-	flag.BoolVar(&onlyDecode, "only-decode", false, "only decoding bqrs files")
+	flag.BoolVar(&onlyDecode, "decode-only", false, "only decoding bqrs files")
+	flag.BoolVar(&doCollect, "collect", false, "collect all csv results in one csv. The option takes effect only when format is csv.")
 	flag.Usage = flag.PrintDefaults
 }
 
@@ -49,13 +54,16 @@ func main() {
 		getAnalyzedRepoNames()
 		queriesExec()
 	}
-	decodeResults(targetDecodeFmt, onlyDecode)
+	decodeResults(targetDecodeFmt)
+	if doCollect && targetDecodeFmt == "csv" {
+		collect()
+	}
 }
 
 func parseConfig() {
 	bs, err := os.ReadFile(configPath)
 	if err != nil {
-		log.Fatalln("error occurs when reading", configPath, err)
+		log.Fatalln("error occurs when reading config", configPath, err)
 	}
 	err = yaml.Unmarshal(bs, &cfg)
 	if err != nil {
@@ -249,10 +257,8 @@ func queryExec(qScriptPath string, repoDBPath string, outPathNoExt string, out *
 }
 
 func checkDecodeTargetFmt(tgtFmt string) bool {
-	for _, fmt := range validFmts {
-		if tgtFmt == fmt {
-			return true
-		}
+	if slices.Contains(validFmts, tgtFmt) {
+		return true
 	}
 	log.Fatalln(tgtFmt, "is not valid format, use --help for more information.")
 	return false
@@ -261,34 +267,8 @@ func checkDecodeTargetFmt(tgtFmt string) bool {
 /*
 codeql bqrs decode --format=${tgtFmt} ${path}/${fileBase}.bqrs --output=${path}/${fileBase}.${tgtFmt}
 */
-func decodeResults(tgtFmt string, decodeOnly bool) {
+func decodeResults(tgtFmt string) {
 	checkDecodeTargetFmt(tgtFmt)
-
-	if decodeOnly {
-		// 列举config.ResultRoot下的目录
-		rootDir := cfg.ResultRoot
-
-		dirNum := len(qlResultDirsUnderRoot(rootDir))
-
-		bar := progressbar.Default(int64(dirNum))
-		defer bar.Close()
-		filepath.WalkDir(rootDir, func(path string, d fs.DirEntry, err error) error {
-			if err != nil {
-				return nil
-			}
-			if d.IsDir() && baseInExcludePaths(path) {
-				return filepath.SkipDir
-			}
-			if d.IsDir() {
-				bar.Add(1)
-				if err = transFilesInDir(tgtFmt, path); err != nil {
-					return err
-				}
-			}
-			return nil
-		})
-		return
-	}
 
 	// decode bqrs only in query result dir
 	bar := progressbar.Default(int64(len(cfg.Queries)))
@@ -303,21 +283,108 @@ func decodeResults(tgtFmt string, decodeOnly bool) {
 	}
 }
 
-/*
-ql result directory under `rootDir` whose base is not log/analyze
-*/
-func qlResultDirsUnderRoot(rootDir string) (res []string) {
-	res = make([]string, 0)
-	filepath.Walk(rootDir, func(path string, info fs.FileInfo, err error) error {
+func collect() {
+	bar := progressbar.Default(int64(len(cfg.Queries)))
+	for _, qScript := range cfg.Queries {
+		qScriptNameNoExt, _, qResultDir := qScriptRelatedInfo(qScript)
+		bar.Describe("collecting for " + qScriptNameNoExt)
+		qResultCSV := qResultDir + ".csv"
+
+		// Create or truncate the output CSV file
+		outFile, err := os.Create(qResultCSV)
 		if err != nil {
-			return err
+			log.Printf("Error creating output file %s: %v", qResultCSV, err)
+			continue
 		}
-		if info.IsDir() {
-			res = append(res, path)
+		defer outFile.Close()
+
+		firstFile := true
+		var header string
+		expectedHeader := ""
+
+		// Read all CSV files in the result directory
+		files, err := os.ReadDir(qResultDir)
+		if err != nil {
+			log.Printf("Error reading directory %s: %v", qResultDir, err)
+			bar.Add(1)
+			continue
 		}
-		return nil
-	})
-	return res
+
+		for _, file := range files {
+			if file.IsDir() || filepath.Ext(file.Name()) != ".csv" {
+				continue
+			}
+
+			filePath := filepath.Join(qResultDir, file.Name())
+			// Skip the output file itself to avoid self-inclusion
+			if filePath == qResultCSV {
+				continue
+			}
+
+			// Open the CSV file
+			inFile, err := os.Open(filePath)
+			if err != nil {
+				log.Printf("Error opening file %s: %v", filePath, err)
+				continue
+			}
+			defer inFile.Close()
+
+			reader := csv.NewReader(inFile)
+
+			// Read header
+			headerRecord, err := reader.Read()
+			if err != nil {
+				log.Printf("Error reading header from %s: %v", filePath, err)
+				continue
+			}
+
+			// Get repo name from filename (without .csv extension)
+			repoName := strings.TrimSuffix(file.Name(), ".csv")
+
+			if firstFile {
+				firstFile = false
+				// For the first file, write header with repo_name column
+				header = strings.Join(headerRecord, ",") + ",repo_name\n"
+				_, err := outFile.WriteString(header)
+				if err != nil {
+					log.Printf("Error writing header to %s: %v", qResultCSV, err)
+				}
+				expectedHeader = strings.TrimSuffix(header, ",repo_name\n")
+				if expectedHeader == "" {
+					// This should not happen as we set expectedHeader after first file
+					log.Fatalf("Error: No expected header set for file %s", filePath)
+				}
+			} else {
+				// For subsequent files, verify header matches
+				currentHeader := strings.Join(headerRecord, ",")
+				if currentHeader != expectedHeader {
+					log.Printf("Warning: Header mismatch in file %s. Expected: %s, Got: %s", filePath, expectedHeader, currentHeader)
+					continue
+				}
+			}
+
+			// Read and write all data rows with repo_name
+			for {
+				record, err := reader.Read()
+				if err != nil {
+					if err == io.EOF {
+						break
+					}
+					log.Printf("Error reading row from %s: %v", filePath, err)
+					break
+				}
+
+				row := strings.Join(record, ",") + "," + repoName + "\n"
+				_, err = outFile.WriteString(row)
+				if err != nil {
+					log.Printf("Error writing row to %s: %v", qResultCSV, err)
+					break
+				}
+			}
+		}
+
+		bar.Add(1)
+	}
 }
 
 func transFilesInDir(tgtFmt string, path string) error {
@@ -354,20 +421,4 @@ func transFilesForEntries(dirEntries []fs.DirEntry, path string, tgtFmt string) 
 			}
 		}
 	}
-}
-
-var excludePaths []string = []string{
-	"log",
-	"analyze",
-}
-
-func baseInExcludePaths(path string) (excluded bool) {
-	base := filepath.Base(path)
-	excluded = false
-	for _, expected := range excludePaths {
-		if base == expected {
-			return true
-		}
-	}
-	return
 }
