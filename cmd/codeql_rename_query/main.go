@@ -27,6 +27,10 @@ var configPath string
 
 func init() {
 	flag.StringVar(&configPath, "c", "./go.yaml", "specify the configuration file")
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, "NOTICE: this tool is not well tested.\nrename query. The result in ResultRoots will also be renamed for consistency.")
+		flag.PrintDefaults()
+	}
 }
 
 func main() {

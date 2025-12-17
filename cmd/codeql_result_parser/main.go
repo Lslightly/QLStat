@@ -22,7 +22,7 @@ var (
 func init() {
 	flag.StringVar(&configPath, "c", "qlSumConfig.yaml", "the analyzer yaml configuration file")
 	flag.Usage = func() {
-		fmt.Println("accept the root directory path of codeql result as the last argument")
+		fmt.Println("NOTICE: Please use `-collect` option of codeql_qdriver and then use database to import the collected csv. Most functions here can be done by SQL in mature database.\naccept the root directory path of codeql result as the last argument")
 		flag.PrintDefaults()
 	}
 }

@@ -1,27 +1,27 @@
 logRoot: logs
-repoRoot: repos
-dbRoot: codeql-db
+repoRoot: repos # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
 
 # clone
 sources:
-  - prefix: https://github.com/
+  - prefix: https://github.com/ # clone url prefix
     fullnames:
       - junegunn/fzf
       - gookit/filter
 
 # build
-language: go
-buildTimeout: 3600
-buildRepos:
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildRepos: # "-" means all repositories. You can also specify certain repositories to force re-build
   - "-"
 
 # query
 queryconfig:
-  resultRoot: codeqlResult
-  queryRepos:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  queryRepos: # repos to query. "-" means all repositories in repoRoot.
     - "-"
-  queryRoot: qlsrc
-  queries:
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  queries: # queries
     - convInterface/assign.ql
     - convInterface/call.ql
-  parallelCore: 20
+  parallelCore: 20 # parallel cores to run query
