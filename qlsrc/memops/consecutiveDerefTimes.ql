@@ -2,7 +2,7 @@
  * consecutive deref times for patterns like `**p`
  */
 import go
-import helper
+import lib.helper
 
 predicate countDerefTimes(Expr expr, int times) {
     if not isExplicitDeref(expr) then

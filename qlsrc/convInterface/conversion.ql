@@ -2,8 +2,8 @@
  * explicit type conversion expr
  */
 import go
-import InterfaceLib
-import typeHelper
+import lib.InterfaceLib
+import lib.typeHelper
 
 from ConversionExpr conv
 where

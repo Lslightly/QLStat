@@ -3,8 +3,8 @@
  * `ch <- s` where the type of `ch` is `chan interface{}`
  */
 import go
-import typeHelper
-import InterfaceLib
+import lib.typeHelper
+import lib.InterfaceLib
 
 from SendStmt send
 where

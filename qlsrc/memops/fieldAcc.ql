@@ -2,7 +2,7 @@
  * 搜索域访问表达式，排除掉了函数
  */
 import go
-import helper
+import lib.helper
 
 from ReferenceExpr ref
 where isFieldAccess(ref)

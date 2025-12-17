@@ -2,7 +2,7 @@
  * LHS of assignment which does not contain deref
  */
 import go
-import helper
+import lib.helper
 
 from Assignment assign, int lhsIdx
 where not isOrContainsDeref(assign.getLhs(lhsIdx))

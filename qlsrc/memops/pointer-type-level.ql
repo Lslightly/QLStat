@@ -2,8 +2,8 @@
  * 查询变量类型中指针嵌套深度
  */
 import go
-import helper
-import typeHelper
+import lib.helper
+import lib.typeHelper
 
 from Variable var
 where not isVarInTypeDef(var)

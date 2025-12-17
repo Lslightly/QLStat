@@ -2,8 +2,8 @@
  * passing argument to call statement
  */
 import go
-import typeHelper
-import InterfaceLib
+import lib.typeHelper
+import lib.InterfaceLib
 
 from CallExpr call, int idx
 where (call.getCalleeType().getParameterType(idx).getUnderlyingType() instanceof InterfaceType

@@ -2,7 +2,7 @@
  * &a
  */
 import go
-import helper
+import lib.helper
 
 from AddressExpr addr
 select addr, addr.getLocation()

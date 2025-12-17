@@ -3,8 +3,8 @@
  * interface = 
  */
 import go
-import helper
-import typeHelper
+import lib.helper
+import lib.typeHelper
 
 from Assignment assign, int idx
 where assign.getLhs(idx).getType().getUnderlyingType() instanceof InterfaceType and not assign.getRhs(idx).getType().getUnderlyingType() instanceof PointerType

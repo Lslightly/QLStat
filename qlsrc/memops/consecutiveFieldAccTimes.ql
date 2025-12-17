@@ -2,7 +2,7 @@
  * consecutive field access times for patterns like `a.f1.f2.f3`
  */
 import go
-import helper
+import lib.helper
 
 predicate countFieldAccTimes(Expr expr, int times) {
     if not isFieldAccess(expr) then

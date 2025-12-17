@@ -1,7 +1,7 @@
 import go
 import semmle.go.Util
 import DataFlow
-import AliasAnalysis
+import lib.AliasAnalysis
 
 boolean isTypeSizeLarge(Type t) {
     if not (t instanceof BasicType

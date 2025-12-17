@@ -4,8 +4,8 @@
  * BoolType, NumericType, StringType, ArrayType, SliceType, StructType, SignatureType, MapType, ChannelType, not InterfaceType, not PointerType
  */
 import go
-import typeHelper
-import InterfaceLib
+import lib.typeHelper
+import lib.InterfaceLib
 
 from Assignment assign, int idx
 where

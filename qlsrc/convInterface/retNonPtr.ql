@@ -2,8 +2,8 @@
  * return to interface type
  */
 import go
-import typeHelper
-import InterfaceLib
+import lib.typeHelper
+import lib.InterfaceLib
 
 from ReturnStmt ret, int i
 where

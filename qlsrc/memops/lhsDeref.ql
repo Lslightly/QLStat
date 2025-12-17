@@ -2,7 +2,7 @@
  * 赋值语句的lhs中包含解引用操作
  */
 import go
-import helper
+import lib.helper
 
 from Assignment assign, int lhsIdx
 where isOrContainsDeref(assign.getLhs(lhsIdx))

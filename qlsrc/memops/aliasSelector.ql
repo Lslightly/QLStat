@@ -1,5 +1,5 @@
 import go
-import AliasAnalysis
+import lib.AliasAnalysis
 
 
 
