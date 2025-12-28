@@ -12,13 +12,13 @@ sources:
 # build
 language: go # language to analyze
 buildTimeout: 3600 # timeout for building repository
-buildRepos: # "-" means all repositories. You can also specify certain repositories to force re-build
+buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
   - "-"
 
 # query
 queryconfig:
   resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
-  queryRepos: # repos to query. "-" means all repositories in repoRoot.
+  queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
     - "-"
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   queries: # queries

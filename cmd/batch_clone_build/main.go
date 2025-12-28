@@ -22,6 +22,7 @@ func init() {
 	flag.BoolVar(&opt.disableBuild, "nobuild", false, "disable build")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "Usage: go run ./cmd/batch_clone_build <yaml file>")
+		flag.PrintDefaults()
 	}
 }
 

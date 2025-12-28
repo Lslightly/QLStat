@@ -3,11 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"sync"
 
 	"github.com/Lslightly/qlstat/config"
@@ -42,36 +40,12 @@ func batchClone(cfg *config.Artifact) {
 		err      error // nil means success
 	}
 
-	baseNameCnt := make(map[string]int)            // count of existing repos with baseName
-	conflictOld2NewName := make(map[string]string) // old name of conflict repos -> new name
-
-	resolveRepoName := func(fullname string) string {
-		basename := filepath.Base(fullname)
-		if count, ok := baseNameCnt[basename]; ok {
-			baseNameCnt[basename] = count + 1
-			basename = basename + strconv.Itoa(count) // change basename as basename<cnt>
-			conflictOld2NewName[fullname] = basename
-		} else {
-			baseNameCnt[basename] = 1 // update baseNameCnt
-		}
-		return basename
-	}
-
 	statusChan := make(chan cloneStatus)
-	var wg sync.WaitGroup
 	repoCnt := 0
-	for _, src := range cfg.Sources {
-		for _, fullname := range src.FullNames {
-			basename := resolveRepoName(fullname)
-			tgtdir := filepath.Join(cfg.RepoRoot, basename)
-			if _, err := os.Stat(tgtdir); err == nil {
-				fmt.Printf("Skiping existing repo: %s\n", fullname)
-				continue
-			}
-			tgturl, err := url.JoinPath(src.Prefix, fullname+".git")
-			if err != nil {
-				log.Fatalf("Fail to know target url: %v", err)
-			}
+	var wg sync.WaitGroup
+	for _, gs := range cfg.Sources {
+		gs.CreateRepoRootDir(cfg.RepoRoot)
+		for _, repo := range gs.GetRepos() {
 			wg.Add(1)
 			repoCnt++
 			go func() {
@@ -79,20 +53,20 @@ func batchClone(cfg *config.Artifact) {
 				defer func() {
 					if r := recover(); r != nil {
 						statusChan <- cloneStatus{
-							fullname: fullname,
+							fullname: repo.FullName,
 							err:      fmt.Errorf("unknown recovered error: %v", r),
 						}
 					}
 				}()
-				if err := clone(tgturl, tgtdir); err != nil {
+				if err := repo.Clone(cfg.RepoRoot); err != nil {
 					statusChan <- cloneStatus{
-						fullname: fullname,
+						fullname: repo.FullName,
 						err:      err,
 					}
 					return
 				}
 				statusChan <- cloneStatus{
-					fullname: fullname,
+					fullname: repo.FullName,
 					err:      nil,
 				}
 			}()
@@ -114,14 +88,11 @@ func batchClone(cfg *config.Artifact) {
 		}
 	}
 
-	if len(conflictOld2NewName) != 0 || len(fails) != 0 {
+	if len(fails) != 0 {
 		logdir := cfg.PassLogDir("clone")
-		conflictFile := bypass(os.Create(filepath.Join(logdir, "conflicts.txt")))
-		defer conflictFile.Close()
 		failFile := bypass(os.Create(filepath.Join(logdir, "fail.log")))
 		defer failFile.Close()
 
-		fmt.Fprintf(conflictFile, "conflicts:\n%v\n", conflictOld2NewName)
 		for _, fail := range fails {
 			fmt.Fprintf(failFile, "%s, %v\n", fail.fullname, fail.err)
 		}

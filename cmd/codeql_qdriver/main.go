@@ -1,21 +1,20 @@
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"context"
-	"encoding/csv"
 	"flag"
 	"fmt"
-	"io"
-	"io/fs"
 	"log"
 	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/Lslightly/qlstat/config"
@@ -50,13 +49,18 @@ func init() {
 func main() {
 	flag.Parse()
 	parseConfig()
-	if !onlyDecode {
-		getAnalyzedRepoNames()
-		queriesExec()
+	if cfg.ParallelCore != 0 {
+		runtime.GOMAXPROCS(cfg.ParallelCore)
 	}
+	if !onlyDecode {
+		fmt.Println("Executing queries")
+		queriesExec(cfg.GetQueryRepos())
+	}
+	fmt.Println("Decoding results")
 	decodeResults(targetDecodeFmt)
 	if doCollect && targetDecodeFmt == "csv" {
-		collect()
+		fmt.Println("Collecting CSVs")
+		collectCSVs()
 	}
 }
 
@@ -69,30 +73,6 @@ func parseConfig() {
 	if err != nil {
 		log.Fatalln("error occurs when parsing json", err)
 	}
-}
-
-func getAnalyzedRepoNames() {
-	if len(cfg.QueryRepos) == 1 && cfg.QueryRepos[0] == "-" { // should get all repositories in DBRoot
-		// RepoFlag为空的情况，获取InRootFlag下的所有一级子目录名称并返回
-		var repoNames []string
-		entries, err := os.ReadDir(cfg.DBRoot)
-		if err != nil {
-			fmt.Println("Error:", err)
-		}
-		for _, entry := range entries {
-			if entry.IsDir() {
-				repoNames = append(repoNames, entry.Name())
-			}
-		}
-		cfg.QueryRepos = repoNames
-	}
-}
-
-func qScriptRelatedInfo(qScript string) (qScriptNameNoExt string, qScriptPath string, qResultDir string) {
-	qScriptNameNoExt = strings.TrimSuffix(qScript, path.Ext(qScript))
-	qScriptPath = path.Join(cfg.QueryRoot, qScript)
-	qResultDir = path.Join(cfg.ResultRoot, qScriptNameNoExt)
-	return
 }
 
 type ErrorPair struct {
@@ -121,116 +101,49 @@ first remove all content in ${config.OutResultRoot}/${qScriptNameNoExt}
 dump error log for ${repo} in ${config.OutResultRoot}/${qScriptNameNoExt}/error.log
 dump stdout/stderr for ${repo} in ${config.OutResultRoot}/${qScriptNameNoExt}/log/${repo}.log
 */
-func queriesExec() {
-	bar := progressbar.Default(int64(len(cfg.QueryRepos) * len(cfg.Queries)))
+func queriesExec(repos []config.Repo) {
+	bar := progressbar.Default(int64(len(repos) * len(cfg.Queries)))
 	for _, qScript := range cfg.Queries {
-		qScriptNameNoExt, qScriptPath, qResultDir := qScriptRelatedInfo(qScript)
-		remakeDir(qResultDir)
+		query := config.CreateQuery(qScript)
 
-		queryLogDir := path.Join(cfg.PassLogDir("query"), qScriptNameNoExt)
+		queryLogDir := path.Join(cfg.PassLogDir("query"), query.PathNoExt())
 		err := os.MkdirAll(queryLogDir, 0775)
 		if err != nil {
 			log.Fatal("error occurs when creating log dir", queryLogDir, err)
 		}
+		remakeDir(query.AbsPathNoExtWithRoot(cfg.ResultRoot))
 
-		var repo2err map[string]ErrorPair = make(map[string]ErrorPair)
 		var wg sync.WaitGroup
-		errPairChan := make(chan []QueryStatus, cfg.ParallelCore)
-		for _, repoQ := range splitToQueues(cfg.QueryRepos, cfg.ParallelCore) {
-			if len(repoQ) == 0 {
-				break
-			}
-			localQ := make(PathQueue, len(repoQ))
-			copy(localQ, repoQ)
+		for _, repo := range repos {
 			wg.Add(1)
-			go func() {
+			go func(repo config.Repo, query config.Query) {
 				defer wg.Done()
-				queryForOneRepo(localQ, bar, qScript, qScriptPath, qResultDir, errPairChan, queryLogDir)
-			}()
+				queryForOneRepo(repo, query)
+				bar.Describe(fmt.Sprintf("%-15s %-15s\t", query.Name(), repo.DirBaseName))
+				bar.Add(1)
+			}(repo, query)
 		}
-		go func() {
-			wg.Wait()
-			close(errPairChan)
-		}()
-		for statusBuf := range errPairChan {
-			for _, status := range statusBuf {
-				repo2err[status.repo] = status.pair
-			}
-		}
-		errFilePath := path.Join(cfg.PassLogDir("query"), "error.log")
-		errFile, err := os.Create(errFilePath)
-		if err != nil {
-			log.Fatal("error occurs when create", errFilePath, err)
-		}
-		defer errFile.Close()
-		for repo, err := range repo2err {
-			if err.runErr != "" && err.decodeErr != nil {
-				fmt.Fprintln(errFile, repo, err.runErr, err.decodeErr)
-			}
-		}
-
-		bar.Close()
+		/*
+			currently multiple queries for one repository is not supported
+			`codeql database run-queries` supports multiple queries.
+			But work to collect results from codeql-db/<repo>/results is needed
+		*/
+		wg.Wait()
 	}
+	bar.Close()
 }
 
-type ErrHdr struct {
-	args []interface{}
-}
-
-func (hdr *ErrHdr) Prefix(args ...interface{}) {
-	hdr.args = args
-}
-
-func unwrapErr[T any](args ...interface{}) func(v T, err error) T {
-	return func(v T, err error) T {
-		if err != nil {
-			args = append(args, err)
-			log.Fatal(args)
-		}
-		return v
+func queryRepoLogSetup(query config.Query, repo config.Repo) (outFile, errFile *os.File) {
+	noExtPath := filepath.Join(cfg.PassLogDir("query"), query.PathNoExt(), repo.DirBaseName)
+	outpath, errpath := noExtPath+".out", noExtPath+".err"
+	var err error
+	outFile, err = os.Create(outpath)
+	if err != nil {
+		log.Fatalf("error occurs when creating %s: %v", outpath, err)
 	}
-}
-
-func queryForOneRepo(repos PathQueue, bar *progressbar.ProgressBar, qScript string, qScriptPath string, qResultDir string, errChan chan []QueryStatus, logDir string) {
-	localStatus := make([]QueryStatus, 0, len(repos))
-	for _, repo := range repos {
-		repoOutPath := path.Join(logDir, repo+".out")
-		repoOut := unwrapErr[*os.File]("error occurs when creating", repoOutPath)(os.Create(repoOutPath))
-		defer repoOut.Close()
-		repoErrPath := path.Join(logDir, repo+".err")
-		repoErr := unwrapErr[*os.File]("error occurs when creating", repoErrPath)(os.Create(repoErrPath))
-		defer repoErr.Close()
-
-		var out, err bytes.Buffer
-		decodeErr := queryExec(qScriptPath, path.Join(cfg.DBRoot, repo), path.Join(qResultDir, repo), &out, &err)
-
-		bar.Describe(fmt.Sprintf("%-15s %-15s\t", qScript, repo))
-		localStatus = append(localStatus, QueryStatus{
-			repo: repo,
-			pair: ErrorPair{err.String(), decodeErr},
-		},
-		)
-
-		fmt.Fprint(repoOut, out.String())
-		fmt.Fprint(repoErr, err.String())
-		bar.Add(1)
-	}
-	errChan <- localStatus
-}
-
-type PathQueue []string
-
-func splitToQueues[T []E, E any](s T, numOfProcess int) (res []T) {
-	if len(s) < numOfProcess*20 {
-		return []T{s}
-	}
-	res = make([]T, numOfProcess)
-	num := len(s)
-	eachNum := num/numOfProcess + 1
-	for i := 0; i < numOfProcess; i++ {
-		start := min(i*eachNum, num)
-		end := min((i+1)*eachNum, num)
-		res[i] = s[start:end]
+	errFile, err = os.Create(errpath)
+	if err != nil {
+		log.Fatalf("error occurs when creating %s: %v", errpath, err)
 	}
 	return
 }
@@ -238,22 +151,29 @@ func splitToQueues[T []E, E any](s T, numOfProcess int) (res []T) {
 /*
 codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --output=${qResultDir}/${repo}
 */
-func queryExec(qScriptPath string, repoDBPath string, outPathNoExt string, out *bytes.Buffer, err *bytes.Buffer) error {
+func queryForOneRepo(repo config.Repo, query config.Query) {
+	qResultDir := query.AbsPathNoExtWithRoot(cfg.ResultRoot)
+	repoOut, repoErr := queryRepoLogSetup(query, repo)
+	defer repoOut.Close()
+	defer repoErr.Close()
+
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Minute)
 	defer cancel()
 
 	cmd := exec.CommandContext(ctx, "codeql", []string{
 		"query",
 		"run",
-		fmt.Sprintf("-d=%s", repoDBPath),
+		fmt.Sprintf("-d=%s", repo.DBPath(cfg.DBRoot)),
 		fmt.Sprintf("--search-path=%s", filepath.Join(cfg.QueryRoot, "lib")),
-		qScriptPath,
-		fmt.Sprintf("--output=%s", outPathNoExt+".bqrs"),
+		query.AbsPathWithRoot(cfg.QueryRoot),
+		fmt.Sprintf("--output=%s", filepath.Join(qResultDir, repo.DirBaseName)+".bqrs"),
 	}...)
-	cmd.Stdout = out
-	cmd.Stderr = err
-	out.WriteString(cmd.String() + "\n")
-	return cmd.Run()
+	cmd.Stdout = repoOut
+	cmd.Stderr = repoErr
+	repoOut.WriteString(cmd.String() + "\n")
+	cmd.Run()
+	repoOut.Sync()
+	repoErr.Sync()
 }
 
 func checkDecodeTargetFmt(tgtFmt string) bool {
@@ -275,150 +195,153 @@ func decodeResults(tgtFmt string) {
 	defer bar.Close()
 	for _, qScript := range cfg.Queries {
 		bar.Add(1)
-		_, _, qResultDir := qScriptRelatedInfo(qScript)
-		if err := transFilesInDir(tgtFmt, qResultDir); err != nil {
-			fmt.Println(err)
-			continue
-		}
+		query := config.CreateQuery(qScript)
+		bar.Describe(fmt.Sprintf("Decoding %s dir", query.Name()))
+		decodeFilesInDir(tgtFmt, query)
 	}
 }
 
-func collect() {
+func decodeLogSetup(decodeLogDir string, repoName string) (outFile, errFile *os.File) {
+	var err error
+	outpath := filepath.Join(decodeLogDir, repoName+".out")
+	outFile, err = os.Create(outpath)
+	if err != nil {
+		log.Fatal("error when creating", outpath, err)
+	}
+	errpath := filepath.Join(decodeLogDir, repoName+".err")
+	errFile, err = os.Create(errpath)
+	if err != nil {
+		log.Fatal("error when creating", errpath, err)
+	}
+	return
+}
+
+func decodeFilesInDir(tgtFmt string, query config.Query) {
+	decodeLogDir := filepath.Join(cfg.PassLogDir("decode"), query.PathNoExt())
+	if err := os.MkdirAll(decodeLogDir, 0755); err != nil {
+		log.Fatal(err)
+	}
+
+	resultRoot := query.AbsPathNoExtWithRoot(cfg.ResultRoot)
+	dirEntries, err := os.ReadDir(resultRoot)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	for _, de := range dirEntries {
+		if de.IsDir() || filepath.Ext(de.Name()) != ".bqrs" {
+			continue
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			outFile, errFile := decodeLogSetup(decodeLogDir, de.Name())
+			defer outFile.Close()
+			defer errFile.Close()
+			tgtPath := filepath.Join(resultRoot, strings.TrimSuffix(de.Name(), filepath.Ext(de.Name()))+"."+tgtFmt)
+			cmd := exec.Command("codeql", "bqrs", "decode",
+				"--format="+tgtFmt,
+				filepath.Join(resultRoot, de.Name()),
+				"--output="+tgtPath)
+			cmd.Run()
+		}()
+	}
+	wg.Wait()
+}
+
+func collectCSVs() {
 	bar := progressbar.Default(int64(len(cfg.Queries)))
 	for _, qScript := range cfg.Queries {
-		qScriptNameNoExt, _, qResultDir := qScriptRelatedInfo(qScript)
-		bar.Describe("collecting for " + qScriptNameNoExt)
-		qResultCSV := qResultDir + ".csv"
-
-		// Create or truncate the output CSV file
-		outFile, err := os.Create(qResultCSV)
-		if err != nil {
-			log.Printf("Error creating output file %s: %v", qResultCSV, err)
-			continue
-		}
-		defer outFile.Close()
-
-		firstFile := true
-		var header string
-		expectedHeader := ""
-
-		// Read all CSV files in the result directory
-		files, err := os.ReadDir(qResultDir)
-		if err != nil {
-			log.Printf("Error reading directory %s: %v", qResultDir, err)
-			bar.Add(1)
-			continue
-		}
-
-		for _, file := range files {
-			if file.IsDir() || filepath.Ext(file.Name()) != ".csv" {
-				continue
-			}
-
-			filePath := filepath.Join(qResultDir, file.Name())
-			// Skip the output file itself to avoid self-inclusion
-			if filePath == qResultCSV {
-				continue
-			}
-
-			// Open the CSV file
-			inFile, err := os.Open(filePath)
-			if err != nil {
-				log.Printf("Error opening file %s: %v", filePath, err)
-				continue
-			}
-			defer inFile.Close()
-
-			reader := csv.NewReader(inFile)
-
-			// Read header
-			headerRecord, err := reader.Read()
-			if err != nil {
-				log.Printf("Error reading header from %s: %v", filePath, err)
-				continue
-			}
-
-			// Get repo name from filename (without .csv extension)
-			repoName := strings.TrimSuffix(file.Name(), ".csv")
-
-			if firstFile {
-				firstFile = false
-				// For the first file, write header with repo_name column
-				header = strings.Join(headerRecord, ",") + ",repo_name\n"
-				_, err := outFile.WriteString(header)
-				if err != nil {
-					log.Printf("Error writing header to %s: %v", qResultCSV, err)
-				}
-				expectedHeader = strings.TrimSuffix(header, ",repo_name\n")
-				if expectedHeader == "" {
-					// This should not happen as we set expectedHeader after first file
-					log.Fatalf("Error: No expected header set for file %s", filePath)
-				}
-			} else {
-				// For subsequent files, verify header matches
-				currentHeader := strings.Join(headerRecord, ",")
-				if currentHeader != expectedHeader {
-					log.Printf("Warning: Header mismatch in file %s. Expected: %s, Got: %s", filePath, expectedHeader, currentHeader)
-					continue
-				}
-			}
-
-			// Read and write all data rows with repo_name
-			for {
-				record, err := reader.Read()
-				if err != nil {
-					if err == io.EOF {
-						break
-					}
-					log.Printf("Error reading row from %s: %v", filePath, err)
-					break
-				}
-
-				row := strings.Join(record, ",") + "," + repoName + "\n"
-				_, err = outFile.WriteString(row)
-				if err != nil {
-					log.Printf("Error writing row to %s: %v", qResultCSV, err)
-					break
-				}
-			}
-		}
-
+		query := config.CreateQuery(qScript)
+		bar.Describe("collecting for " + query.PathNoExt())
+		collectCSVsForQuery(query)
 		bar.Add(1)
 	}
 }
 
-func transFilesInDir(tgtFmt string, path string) error {
-	fmt.Println("scanning " + path)
-	dirEntries, err := os.ReadDir(path)
+func collectCSVsForQuery(query config.Query) {
+	qResultDir := query.AbsPathNoExtWithRoot(cfg.ResultRoot)
+	qResultCSV := qResultDir + ".csv"
+
+	// Create or truncate the output CSV file
+	outFile, err := os.Create(qResultCSV)
 	if err != nil {
-		return fs.SkipDir
+		log.Fatalf("Error creating output file %s: %v", qResultCSV, err)
 	}
+	defer outFile.Close()
+
+	// Read all CSV files in the result directory
+	files, err := os.ReadDir(qResultDir)
+	if err != nil {
+		log.Fatalf("Error reading directory %s: %v", qResultDir, err)
+	}
+
+	var ticket atomic.Int64
+	var headerWritten atomic.Bool
+	var expectedHeader string
+	contentChan := make(chan string, cfg.ParallelCore)
+	var hasFile bool
+
 	var wg sync.WaitGroup
-	for _, groupEntries := range splitToQueues(dirEntries, cfg.ParallelCore) {
-		wg.Add(1)
-		localQ := make([]fs.DirEntry, len(groupEntries))
-		copy(localQ, groupEntries)
-		go func() {
-			defer wg.Done()
-			transFilesForEntries(localQ, path, tgtFmt)
-		}()
-	}
-	wg.Wait()
-	return nil
-}
-
-func transFilesForEntries(dirEntries []fs.DirEntry, path string, tgtFmt string) {
-	for _, dirEntry := range dirEntries {
-		if !dirEntry.IsDir() && filepath.Ext(dirEntry.Name()) == ".bqrs" {
-			// 执行命令`codeql bqrs decode --format=${tgtFmt} ${path}/${fileBase}.bqrs --output=${path}/${fileBase}.${tgtFmt}`
-			bqrsFile := filepath.Join(path, dirEntry.Name())
-			outFile := filepath.Join(path, strings.TrimSuffix(dirEntry.Name(), filepath.Ext(dirEntry.Name()))+"."+tgtFmt)
-
-			cmd := exec.Command("codeql", "bqrs", "decode", "--format="+tgtFmt, bqrsFile, "--output="+outFile)
-			err := cmd.Run()
-			if err != nil {
-				continue
-			}
+	for _, file := range files {
+		if file.IsDir() || filepath.Ext(file.Name()) != ".csv" {
+			continue
 		}
+		hasFile = true
+
+		wg.Add(1)
+		go func(file os.DirEntry, qResultDir string) {
+			defer wg.Done()
+			// Get repo name from filename (without .csv extension)
+			repoName := strings.TrimSuffix(file.Name(), ".csv")
+
+			// For the first file, write header with repo_name column
+			fpath := filepath.Join(qResultDir, file.Name())
+			// Open the CSV file
+			inFile, err := os.Open(fpath)
+			if err != nil {
+				log.Fatalf("Error opening file %s: %v", fpath, err)
+			}
+			defer inFile.Close()
+
+			scanner := bufio.NewScanner(inFile)
+
+			if !scanner.Scan() {
+				log.Fatalf("Error reading header from %s", fpath)
+			}
+			// Read header
+			currentHeader := scanner.Text()
+
+			firstFile := ticket.Add(1) == 1
+			if firstFile {
+				expectedHeader = currentHeader
+				headerWritten.Store(true)
+			} else {
+				for !headerWritten.Load() {
+				}
+				if currentHeader != expectedHeader {
+					log.Fatalf("Warning: Header mismatch in file %s. Expected: %s, Got: %s", fpath, expectedHeader, currentHeader)
+				}
+			}
+			lines := make([]string, 0)
+			for scanner.Scan() {
+				lines = append(lines, scanner.Text()+","+repoName)
+			}
+			contentChan <- strings.Join(lines, "\n")
+		}(file, qResultDir)
+	}
+	go func() {
+		wg.Wait()
+		close(contentChan)
+	}()
+	if !hasFile {
+		fmt.Printf("query %s does not have results", query.Name())
+		return
+	}
+	for !headerWritten.Load() {
+	}
+	outFile.WriteString(expectedHeader + "\n")
+	for c := range contentChan {
+		outFile.WriteString(c + "\n")
 	}
 }
