@@ -39,15 +39,21 @@ var (
 )
 
 func init() {
-	flag.StringVar(&configPath, "c", "./go.yaml", "the configuration file")
 	flag.StringVar(&targetDecodeFmt, "format", "csv", "target format of decode, including text, csv, json, bqrs")
 	flag.BoolVar(&onlyDecode, "decode-only", false, "only decoding bqrs files")
 	flag.BoolVar(&doCollect, "collect", false, "collect all csv results in one csv. The option takes effect only when format is csv.")
-	flag.Usage = flag.PrintDefaults
+	flag.Usage = func() {
+		fmt.Fprintln(os.Stderr, "run queries in parallel\nUsage: go run cmd/codeql_qdriver [options] <config file>")
+	}
 }
 
 func main() {
 	flag.Parse()
+	if flag.NArg() != 1 {
+		flag.Usage()
+		os.Exit(1)
+	}
+	configPath = flag.Arg(0)
 	parseConfig()
 	if cfg.ParallelCore != 0 {
 		runtime.GOMAXPROCS(cfg.ParallelCore)
