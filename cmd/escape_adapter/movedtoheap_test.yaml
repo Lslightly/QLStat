@@ -40,5 +40,6 @@ queryconfig:
       queries:
         - escape_ext/inlined_var_test.ql
         - escape_ext/ref_in_go_test.ql
+        - escape_ext/heapvar_use_in_go_test.ql
       externals:
         - movedToHeap
