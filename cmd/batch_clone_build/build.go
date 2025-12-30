@@ -48,7 +48,7 @@ func batchBuild(cfg *config.Artifact) {
 	defer csvFile.Close()
 	defer logFile.Close()
 
-	repos := cfg.GetBuildRepos()
+	repos := cfg.ConvStrSliceToRepoSlice(cfg.BuildRepos)
 	if len(repos) < 10 {
 		repoNames := make([]string, 0)
 		for _, repo := range repos {

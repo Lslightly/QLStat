@@ -59,7 +59,7 @@ func main() {
 		runtime.GOMAXPROCS(cfg.ParallelCore)
 	}
 	if !onlyDecode {
-		for grpi, grp := range cfg.Grps {
+		for grpi, grp := range cfg.QueryGrps {
 			fmt.Printf("Grp %d: Executing queries\n", grpi)
 			queriesExec(grp)
 		}
@@ -158,7 +158,7 @@ func queryRepoLogSetup(query config.Query, repo config.Repo) (outFile, errFile *
 }
 
 /*
-codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --output=${qResultDir}/${repo}
+codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --output=${qResultDir}/${repo} --search-path=./qlsrc/lib --external=$pred/${config.dbRoot}/${repo}/ext/$pred.csv
 */
 func queryForOneRepo(repo config.Repo, query config.Query) {
 	qResultDir := query.AbsPathNoExtWithRoot(cfg.ResultRoot)
@@ -178,9 +178,10 @@ func queryForOneRepo(repo config.Repo, query config.Query) {
 			query.AbsPathWithRoot(cfg.QueryRoot),
 			fmt.Sprintf("--output=%s", filepath.Join(qResultDir, repo.DirBaseName)+".bqrs"),
 		},
-			query.ExternalOptions(repo.DBExtPath(cfg.DBRoot))...,
+			query.ExternalOptions(repo.DBExtDir(cfg.DBRoot))...,
 		)...,
 	)
+	fmt.Println(cmd.String())
 	cmd.Stdout = repoOut
 	cmd.Stderr = repoErr
 	repoOut.WriteString(cmd.String() + "\n")
@@ -205,7 +206,7 @@ func decodeResults(tgtFmt string) {
 	checkDecodeTargetFmt(tgtFmt)
 
 	// decode bqrs only in query result dir
-	for grpi, grp := range cfg.Grps {
+	for grpi, grp := range cfg.QueryGrps {
 		queries := grp.Queries
 		bar := progressbar.Default(int64(len(queries)))
 		defer bar.Close()
@@ -267,7 +268,7 @@ func decodeFilesInDir(tgtFmt string, query config.Query) {
 }
 
 func collectCSVs() {
-	for grpi, grp := range cfg.Grps {
+	for grpi, grp := range cfg.QueryGrps {
 		bar := progressbar.Default(int64(len(grp.Queries)))
 		for _, qScript := range grp.Queries {
 			query := config.CreateQuery(qScript, grp.Externals)

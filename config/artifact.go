@@ -8,13 +8,14 @@ import (
 )
 
 type Artifact struct {
-	RepoRoot     string      `yaml:"repoRoot"`
-	LogRoot      string      `yaml:"logRoot"`
-	Sources      []GitSource `yaml:"sources"`
-	DBRoot       string      `yaml:"dbRoot"`
-	Lang         string      `yaml:"language"`
-	BuildTimeout int         `yaml:"buildTimeout"`
-	BuildRepos   []string    `yaml:"buildRepos"` // ["-"] indicates all repositories
+	RepoRoot     string             `yaml:"repoRoot"`
+	LogRoot      string             `yaml:"logRoot"`
+	Sources      []*GitSource       `yaml:"sources"`
+	DBRoot       string             `yaml:"dbRoot"`
+	Lang         string             `yaml:"language"`
+	BuildTimeout int                `yaml:"buildTimeout"`
+	BuildRepos   []string           `yaml:"buildRepos"` // ["-"] indicates all repositories
+	ExtGenGrps   []ExternalGenGroup `yaml:"externalGenGrps"`
 	QueryConfig  `yaml:"queryconfig"`
 }
 
@@ -22,13 +23,18 @@ type QueryConfig struct {
 	ResultRoot   string       `yaml:"resultRoot"`
 	QueryRoot    string       `yaml:"queryRoot"`
 	ParallelCore int          `yaml:"parallelCore"`
-	Grps         []QueryGroup `yaml:"queryGrps"`
+	QueryGrps    []QueryGroup `yaml:"queryGrps"`
 }
 
 type QueryGroup struct {
 	QueryRepos []string `yaml:"queryRepos"`
 	Queries    []string `yaml:"queries"`
 	Externals  []string `yaml:"externals"`
+}
+
+type ExternalGenGroup struct {
+	GenRepos  []string `yaml:"genRepos"`
+	GenScript string   `yaml:"genScript"`
 }
 
 var Nowstr string = time.Now().Local().Format("0102-150405")
@@ -49,17 +55,17 @@ func (art *Artifact) PassLogDir(pass string) string {
 	return dir
 }
 
-type buildType int
+type reposType int
 
 const (
-	buildSpecific buildType = iota
+	buildSpecific reposType = iota
 	buildWrittenInSources
 	buildAll
 )
 
-func (art *Artifact) getBuildType() buildType {
-	if len(art.BuildRepos) == 1 {
-		repo0 := art.BuildRepos[0]
+func getReposType(repos []string) reposType {
+	if len(repos) == 1 {
+		repo0 := repos[0]
 		switch repo0 {
 		case "-":
 			return buildWrittenInSources
@@ -70,8 +76,8 @@ func (art *Artifact) getBuildType() buildType {
 	return buildSpecific
 }
 
-func (art *Artifact) GetBuildRepos() (res []Repo) {
-	switch art.getBuildType() {
+func (art *Artifact) ConvStrSliceToRepoSlice(repos []string) (res []Repo) {
+	switch getReposType(repos) {
 	case buildWrittenInSources:
 		for _, gs := range art.Sources {
 			res = append(res, gs.GetRepos()...)
@@ -86,34 +92,7 @@ func (art *Artifact) GetBuildRepos() (res []Repo) {
 		for _, gs := range art.Sources {
 			gs.calcFullName2RepoCache()
 		}
-		for _, fullname := range art.BuildRepos {
-			for _, gs := range art.Sources {
-				if repo, ok := gs.fullName2RepoCache[fullname]; ok {
-					res = append(res, repo)
-				}
-			}
-		}
-		return
-	}
-}
-
-func (art *Artifact) ConvStrSliceToRepoSlice(queryRepos []string) (res []Repo) {
-	switch art.getBuildType() {
-	case buildWrittenInSources:
-		for _, gs := range art.Sources {
-			res = append(res, gs.GetRepos()...)
-		}
-		return
-	case buildAll:
-		for _, gs := range art.Sources {
-			res = append(res, gs.reposInDir(art.DBRoot)...)
-		}
-		return
-	default:
-		for _, gs := range art.Sources {
-			gs.calcFullName2RepoCache()
-		}
-		for _, fullname := range queryRepos {
+		for _, fullname := range repos {
 			for _, gs := range art.Sources {
 				if repo, ok := gs.fullName2RepoCache[fullname]; ok {
 					res = append(res, repo)

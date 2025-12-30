@@ -1,0 +1,1 @@
+external predicate movedToHeap(string path, int startLine, int startCol);
