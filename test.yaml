@@ -1,0 +1,39 @@
+logRoot: logs
+repoRoot: repos # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+
+# clone
+sources:
+  - prefix: https://test/ # clone url prefix
+    fullnames:
+      - aliasFieldAcc
+      - assignToInterface
+      - convInterface
+      - CWE-369
+      - CWE-400
+      - CWE-525
+      - CWE-807
+      - escape
+      - intraResourceLeak
+      - memacc
+      - memStatSliceExprSetNil
+      - pkgcall
+      - pkgtest
+      - sliceExprNotSetNil
+
+# build
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+  - "-"
+
+# query
+queryconfig:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
+    - "-"
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  queries: # queries
+    - convInterface/assign.ql
+    - convInterface/call.ql
+  parallelCore: 20 # parallel cores to run query
