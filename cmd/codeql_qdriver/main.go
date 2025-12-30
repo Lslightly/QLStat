@@ -325,7 +325,11 @@ func collectCSVsForQuery(query config.Query) {
 			}
 			lines := make([]string, 0)
 			for scanner.Scan() {
-				lines = append(lines, scanner.Text()+","+repoName)
+				line := strings.TrimSpace(scanner.Text())
+				if line == "" {
+					break
+				}
+				lines = append(lines, line+","+repoName)
 			}
 			contentChan <- strings.Join(lines, "\n")
 		}(file, qResultDir)
@@ -340,8 +344,11 @@ func collectCSVsForQuery(query config.Query) {
 	}
 	for !headerWritten.Load() {
 	}
-	outFile.WriteString(expectedHeader + "\n")
+	outFile.WriteString(expectedHeader + ",repo\n")
 	for c := range contentChan {
+		if c == "" {
+			continue
+		}
 		outFile.WriteString(c + "\n")
 	}
 }
