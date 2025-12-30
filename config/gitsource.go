@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/Lslightly/qlstat/utils"
 )
 
 type GitSource struct {
@@ -54,9 +56,7 @@ func (gs *GitSource) HostDir(root string) string {
 
 func (gs *GitSource) CreateRepoRootDir(root string) {
 	hostDir := gs.HostDir(root)
-	if err := os.MkdirAll(hostDir, 0755); err != nil {
-		log.Fatalf("error occurs when mkdir %s\n%v", hostDir, err)
-	}
+	utils.MkdirAll(hostDir)
 }
 
 func (gs *GitSource) hostName() string {

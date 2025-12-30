@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/Lslightly/qlstat/utils"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -43,14 +44,7 @@ func (this *IOHandler) SetWorkDir(workDir string) {
 	this.outDir = filepath.Join(workDir, "analyze")
 	if _, exists := cleanedDir[this.outDir]; !exists {
 		fmt.Println("recreate out dir", this.outDir)
-		err := os.RemoveAll(this.outDir)
-		if err != nil {
-			log.Fatalln(err)
-		}
-		err = os.MkdirAll(this.outDir, 0755)
-		if err != nil {
-			log.Fatalln(err)
-		}
+		utils.Remkdir(this.outDir)
 	}
 	cleanedDir[this.outDir] = true
 }

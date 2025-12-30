@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/Lslightly/qlstat/config"
+	"github.com/Lslightly/qlstat/utils"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -23,8 +24,6 @@ func (bs buildStatus) String() string {
 		return "timeout"
 	case Fail:
 		return "fail"
-	case MKdirFail:
-		return "mkdirFail"
 	default:
 		return "success"
 	}
@@ -34,7 +33,6 @@ const (
 	Succ buildStatus = iota
 	ExceedDDL
 	Fail
-	MKdirFail
 )
 
 type CreateDBResult struct {
@@ -97,25 +95,17 @@ func buildDirSetup(cfg *config.Artifact) (*os.File, *os.File) {
 	logdir := cfg.PassLogDir("build")
 	// Create output files
 	csvFilePath := filepath.Join(logdir, "repoTimes.csv")
-	csvFile, err := os.Create(csvFilePath)
-	if err != nil {
-		log.Fatalf("Failed to create output file: %v", err)
-	}
+	csvFile := utils.CreateFile(csvFilePath)
 	defer csvFile.Close()
 	csvFile.WriteString("repo,execution_time\n")
 
 	logFilePath := filepath.Join(logdir, "repo_build.txt")
-	logFile, err := os.Create(logFilePath)
-	if err != nil {
-		log.Fatalf("Failed to create output file: %v", err)
-	}
+	logFile := utils.CreateFile(logFilePath)
 	defer logFile.Close()
 
 	for _, gs := range cfg.Sources {
 		hostdir := gs.HostDir(cfg.RepoRoot)
-		if err := os.MkdirAll(filepath.Join(hostdir), 0755); err != nil {
-			log.Fatalf("error occurs when mkdir %s\n%v", hostdir, err)
-		}
+		utils.MkdirAll(filepath.Join(hostdir))
 	}
 	return csvFile, logFile
 }
@@ -152,42 +142,15 @@ done
 	log.Printf("Cleanup script for failed directories created at: %s", cleanupScriptPath)
 }
 
-func buildRepoLogSetup(cfg *config.Artifact, repo config.Repo) (outFile, errFile *os.File) {
-	logdir := cfg.PassLogDir("build")
-	repoRootDir := repo.DirPath(logdir)
-	var err error
-	if err = os.MkdirAll(repoRootDir, 0755); err != nil {
-		log.Fatalf("Fail to mkdir %s", repoRootDir)
-	}
-	outpath := filepath.Join(repoRootDir, "out")
-	outFile, err = os.Create(outpath)
-	if err != nil {
-		log.Fatalf("Fail to create %s", outpath)
-	}
-	errpath := filepath.Join(repoRootDir, "err")
-	errFile, err = os.Create(errpath)
-	if err != nil {
-		log.Fatalf("Fail to create %s", errpath)
-	}
-	return
-}
-
 func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.BuildTimeout)*time.Second)
 	defer cancel()
 
-	outFile, errFile := buildRepoLogSetup(cfg, repo)
+	outFile, errFile := utils.CreateOutAndErr(repo.DirPath(cfg.PassLogDir("build")))
 	defer outFile.Close()
 	defer errFile.Close()
 	dbPath := repo.DBPath(cfg.DBRoot)
-	err := os.MkdirAll(filepath.Dir(dbPath), 0755)
-	if err != nil {
-		resChan <- CreateDBResult{
-			status: MKdirFail,
-			dbPath: dbPath,
-			time:   "",
-		}
-	}
+	utils.MkdirAll(filepath.Dir(dbPath))
 	cmd := exec.CommandContext(ctx, "codeql", "database", "create", dbPath, "-l="+cfg.Lang, "--overwrite", "-s="+repo.DirPath(cfg.RepoRoot))
 	cmd.Stdout = outFile
 	cmd.Stderr = errFile
@@ -195,7 +158,7 @@ func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult) 
 	log.Printf("Executing command: %s", cmd.String())
 
 	startTime := time.Now()
-	err = cmd.Run()
+	err := cmd.Run()
 	executionTime := time.Since(startTime)
 
 	if ctx.Err() == context.DeadlineExceeded {

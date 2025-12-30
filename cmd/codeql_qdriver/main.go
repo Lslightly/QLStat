@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/Lslightly/qlstat/config"
+	"github.com/Lslightly/qlstat/utils"
 	yaml "github.com/goccy/go-yaml"
 	"github.com/schollz/progressbar/v3"
 )
@@ -93,17 +94,6 @@ type QueryStatus struct {
 	pair ErrorPair
 }
 
-func remakeDir(dir string) {
-	err := os.RemoveAll(dir)
-	if err != nil {
-		log.Fatal("error occurs when deleting dir", dir, err)
-	}
-	err = os.MkdirAll(dir, 0755)
-	if err != nil {
-		log.Fatal("error occurs when creating dir", dir, err)
-	}
-}
-
 /*
 first remove all content in ${config.OutResultRoot}/${qScriptNameNoExt}
 dump error log for ${repo} in ${config.OutResultRoot}/${qScriptNameNoExt}/error.log
@@ -116,11 +106,8 @@ func queriesExec(grp config.QueryGroup) {
 		query := config.CreateQuery(qScript, grp.Externals)
 
 		queryLogDir := path.Join(cfg.PassLogDir("query"), query.PathNoExt())
-		err := os.MkdirAll(queryLogDir, 0775)
-		if err != nil {
-			log.Fatal("error occurs when creating log dir", queryLogDir, err)
-		}
-		remakeDir(query.AbsPathNoExtWithRoot(cfg.ResultRoot))
+		utils.MkdirAll(queryLogDir)
+		utils.Remkdir(query.DirPath(cfg.ResultRoot))
 
 		var wg sync.WaitGroup
 		for _, repo := range repos {
@@ -142,27 +129,12 @@ func queriesExec(grp config.QueryGroup) {
 	bar.Close()
 }
 
-func queryRepoLogSetup(query config.Query, repo config.Repo) (outFile, errFile *os.File) {
-	noExtPath := filepath.Join(cfg.PassLogDir("query"), query.PathNoExt(), repo.DirBaseName)
-	outpath, errpath := noExtPath+".out", noExtPath+".err"
-	var err error
-	outFile, err = os.Create(outpath)
-	if err != nil {
-		log.Fatalf("error occurs when creating %s: %v", outpath, err)
-	}
-	errFile, err = os.Create(errpath)
-	if err != nil {
-		log.Fatalf("error occurs when creating %s: %v", errpath, err)
-	}
-	return
-}
-
 /*
 codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --output=${qResultDir}/${repo} --search-path=./qlsrc/lib --external=$pred/${config.dbRoot}/${repo}/ext/$pred.csv
 */
 func queryForOneRepo(repo config.Repo, query config.Query) {
-	qResultDir := query.AbsPathNoExtWithRoot(cfg.ResultRoot)
-	repoOut, repoErr := queryRepoLogSetup(query, repo)
+	qResultDir := query.DirPath(cfg.ResultRoot)
+	repoOut, repoErr := utils.CreateOutAndErr(repo.DirPath(query.DirPath(cfg.PassLogDir("query"))))
 	defer repoOut.Close()
 	defer repoErr.Close()
 
@@ -175,7 +147,7 @@ func queryForOneRepo(repo config.Repo, query config.Query) {
 			"run",
 			fmt.Sprintf("-d=%s", repo.DBPath(cfg.DBRoot)),
 			fmt.Sprintf("--search-path=%s", filepath.Join(cfg.QueryRoot, "lib")),
-			query.AbsPathWithRoot(cfg.QueryRoot),
+			query.QueryPath(cfg.QueryRoot),
 			fmt.Sprintf("--output=%s", filepath.Join(qResultDir, repo.DirBaseName)+".bqrs"),
 		},
 			query.ExternalOptions(repo.DBExtDir(cfg.DBRoot))...,
@@ -219,28 +191,11 @@ func decodeResults(tgtFmt string) {
 	}
 }
 
-func decodeLogSetup(decodeLogDir string, repoName string) (outFile, errFile *os.File) {
-	var err error
-	outpath := filepath.Join(decodeLogDir, repoName+".out")
-	outFile, err = os.Create(outpath)
-	if err != nil {
-		log.Fatal("error when creating", outpath, err)
-	}
-	errpath := filepath.Join(decodeLogDir, repoName+".err")
-	errFile, err = os.Create(errpath)
-	if err != nil {
-		log.Fatal("error when creating", errpath, err)
-	}
-	return
-}
-
 func decodeFilesInDir(tgtFmt string, query config.Query) {
 	decodeLogDir := filepath.Join(cfg.PassLogDir("decode"), query.PathNoExt())
-	if err := os.MkdirAll(decodeLogDir, 0755); err != nil {
-		log.Fatal(err)
-	}
+	utils.MkdirAll(decodeLogDir)
 
-	resultRoot := query.AbsPathNoExtWithRoot(cfg.ResultRoot)
+	resultRoot := query.DirPath(cfg.ResultRoot)
 	dirEntries, err := os.ReadDir(resultRoot)
 	if err != nil {
 		log.Fatal(err)
@@ -253,7 +208,7 @@ func decodeFilesInDir(tgtFmt string, query config.Query) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			outFile, errFile := decodeLogSetup(decodeLogDir, de.Name())
+			outFile, errFile := utils.CreateOutAndErr(filepath.Join(decodeLogDir, de.Name()))
 			defer outFile.Close()
 			defer errFile.Close()
 			tgtPath := filepath.Join(resultRoot, strings.TrimSuffix(de.Name(), filepath.Ext(de.Name()))+"."+tgtFmt)
@@ -261,7 +216,7 @@ func decodeFilesInDir(tgtFmt string, query config.Query) {
 				"--format="+tgtFmt,
 				filepath.Join(resultRoot, de.Name()),
 				"--output="+tgtPath)
-			cmd.Run()
+			_ = cmd.Run()
 		}()
 	}
 	wg.Wait()
@@ -280,14 +235,11 @@ func collectCSVs() {
 }
 
 func collectCSVsForQuery(query config.Query) {
-	qResultDir := query.AbsPathNoExtWithRoot(cfg.ResultRoot)
+	qResultDir := query.DirPath(cfg.ResultRoot)
 	qResultCSV := qResultDir + ".csv"
 
 	// Create or truncate the output CSV file
-	outFile, err := os.Create(qResultCSV)
-	if err != nil {
-		log.Fatalf("Error creating output file %s: %v", qResultCSV, err)
-	}
+	outFile := utils.CreateFile(qResultCSV)
 	defer outFile.Close()
 
 	// Read all CSV files in the result directory

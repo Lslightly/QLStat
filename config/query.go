@@ -30,11 +30,11 @@ func (q *Query) PathNoExt() string {
 	return strings.TrimSuffix(q.path, filepath.Ext(q.path))
 }
 
-func (q *Query) AbsPathWithRoot(queryRoot string) string {
+func (q *Query) QueryPath(queryRoot string) string {
 	return filepath.Join(queryRoot, q.path)
 }
 
-func (q *Query) AbsPathNoExtWithRoot(root string) string {
+func (q *Query) DirPath(root string) string {
 	return filepath.Join(root, q.PathNoExt())
 }
 

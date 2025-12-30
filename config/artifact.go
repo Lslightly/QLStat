@@ -1,10 +1,11 @@
 package config
 
 import (
-	"log"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/Lslightly/qlstat/utils"
 )
 
 type Artifact struct {
@@ -47,9 +48,7 @@ func (art *Artifact) PassLogDir(pass string) string {
 	}
 	dir := filepath.Join(art.LogRoot, pass, Nowstr)
 	if _, err := os.Stat(dir); err != nil {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			log.Fatal(err)
-		}
+		utils.MkdirAll(dir)
 	}
 	logDirMap[pass] = dir
 	return dir

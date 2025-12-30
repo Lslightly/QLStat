@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
 
 	"github.com/Lslightly/qlstat/config"
+	"github.com/Lslightly/qlstat/utils"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -26,12 +25,8 @@ func clone(url, dir string) error {
 }
 
 func dirSetup(cfg *config.Artifact) {
-	if err := os.MkdirAll(cfg.RepoRoot, 0755); err != nil {
-		log.Fatalf("Failed to create clone directory: %v", err)
-	}
-	if err := os.MkdirAll(cfg.DBRoot, 0755); err != nil {
-		log.Fatalf("Failed to create database root directory: %v", err)
-	}
+	utils.MkdirAll(cfg.RepoRoot)
+	utils.MkdirAll(cfg.DBRoot)
 }
 
 func batchClone(cfg *config.Artifact) {
@@ -90,7 +85,7 @@ func batchClone(cfg *config.Artifact) {
 
 	if len(fails) != 0 {
 		logdir := cfg.PassLogDir("clone")
-		failFile := bypass(os.Create(filepath.Join(logdir, "fail.log")))
+		failFile := utils.CreateFile(filepath.Join(logdir, "fail.log"))
 		defer failFile.Close()
 
 		for _, fail := range fails {

@@ -18,7 +18,6 @@ func MkdirAll(dir string) {
 	}
 }
 
-// TODO refactor
 func CreateFile(file string) *os.File {
 	dirname := filepath.Dir(file)
 	if _, err := os.Stat(dirname); os.IsNotExist(err) {
@@ -29,4 +28,12 @@ func CreateFile(file string) *os.File {
 		log.Panicf("error when creating file %s: %v", res.Name(), err)
 	}
 	return res
+}
+
+func Remkdir(dir string) {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		log.Panicf("error occurs when deleting dir %s: %v", dir, err)
+	}
+	MkdirAll(dir)
 }

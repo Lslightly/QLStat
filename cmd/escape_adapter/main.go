@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/Lslightly/qlstat/utils"
 )
 
 var (
@@ -46,15 +48,10 @@ func main() {
 	}
 	logpath := flag.Arg(0)
 	lines := readLinesFromFile(logpath)
-	if err := os.MkdirAll(OutDir, 0755); err != nil {
-		log.Panicf("error occurs when creating dir %s: %v", OutDir, err)
-	}
+	utils.MkdirAll(OutDir)
 	if Opts.movedToHeap {
 		func() {
-			outfile, err := os.Create(filepath.Join(OutDir, "movedToHeap.csv"))
-			if err != nil {
-				log.Panicf("error occurs when creating file %s: %v", outfile.Name(), err)
-			}
+			outfile := utils.CreateFile(filepath.Join(OutDir, "movedToHeap.csv"))
 			defer outfile.Close()
 			fmt.Fprint(outfile, strings.Join(movedToHeapHandle(lines), "\n"))
 		}()

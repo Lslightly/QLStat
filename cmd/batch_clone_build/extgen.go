@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Lslightly/qlstat/cmd/utils"
 	"github.com/Lslightly/qlstat/config"
+	"github.com/Lslightly/qlstat/utils"
 	"github.com/schollz/progressbar/v3"
 )
 
