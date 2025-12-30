@@ -7,6 +7,7 @@ sources:
   - prefix: https://test/ # clone url prefix
     fullnames:
       - escape
+      - false-sharing
 
 # build
 language: go # language to analyze
@@ -32,6 +33,12 @@ queryconfig:
         - escape
       queries: # queries
         - escape_ext/moved_to_heap_var_test.ql
+      externals:
+        - movedToHeap
+    - queryRepos:
+        - false-sharing
+      queries:
         - escape_ext/inlined_var_test.ql
+        - escape_ext/ref_in_go_test.ql
       externals:
         - movedToHeap

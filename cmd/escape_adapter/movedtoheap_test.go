@@ -26,7 +26,7 @@ func runcmd(name string, args []string) error {
 	return cmd.Run()
 }
 
-func TestCodeQLMovedToHeap(t *testing.T) {
+func movedToHeapSetup(t *testing.T) {
 	os.Chdir(projectroot())
 	assert.Nil(
 		t,
@@ -46,6 +46,16 @@ func TestCodeQLMovedToHeap(t *testing.T) {
 			movedtoheapYaml(),
 		}),
 	)
+}
+
+func TestCodeQLMovedToHeap(t *testing.T) {
+	movedToHeapSetup(t)
+	moved_to_heap_var_test(t)
+	inlined_var_test(t)
+	ref_in_go_test(t)
+}
+
+func moved_to_heap_var_test(t *testing.T) {
 	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/moved_to_heap_var_test/escape.csv")
 	f, err := os.Open(csvPath)
 	assert.Nil(t, err)
@@ -54,13 +64,26 @@ func TestCodeQLMovedToHeap(t *testing.T) {
 	assert.Nil(t, err)
 	recs = recs[1:] // remove header
 	assert.Len(t, recs, 12)
+}
 
-	csvPath = filepath.Join(codeqlResultDir(), "escape_ext/inlined_var_test/false-sharing.csv")
-	f, err = os.Open(csvPath)
+func inlined_var_test(t *testing.T) {
+	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/inlined_var_test/false-sharing.csv")
+	f, err := os.Open(csvPath)
 	assert.Nil(t, err)
-	reader = csv.NewReader(f)
-	recs, err = reader.ReadAll()
+	reader := csv.NewReader(f)
+	recs, err := reader.ReadAll()
 	assert.Nil(t, err)
 	recs = recs[1:] // remove header
 	assert.Len(t, recs, 1)
+}
+
+func ref_in_go_test(t *testing.T) {
+	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/ref_in_go_test/false-sharing.csv")
+	f, err := os.Open(csvPath)
+	assert.Nil(t, err)
+	reader := csv.NewReader(f)
+	recs, err := reader.ReadAll()
+	assert.Nil(t, err)
+	recs = recs[1:] // remove header
+	assert.Len(t, recs, 28)
 }
