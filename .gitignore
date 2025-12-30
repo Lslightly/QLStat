@@ -1,7 +1,6 @@
 .vscode/*
 !.vscode/extensions.json
 .venv
-repos
 codeql-db
 logs
 codeqlResult
