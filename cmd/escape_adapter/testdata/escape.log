@@ -1,0 +1,364 @@
+# github.com/Lslightly/qlstat/test/repos/escape
+./escape.go:19:6: cannot inline noalias: function too complex: cost 91 exceeds budget 80
+./escape.go:36:6: can inline val with cost 36 as: func(*int, *int, int, string) { if *p != v { println("wrong value want", v, "got", *p, "after", s); bad = true }; if *q != v + 1 { println("wrong value want", v + 1, "got", *q, "after", s); bad = true } }
+./escape.go:47:6: cannot inline chk: function too complex: cost 104 exceeds budget 80
+./escape.go:52:6: can inline chkalias with cost 30 as: func(*int, *int, int, string) { if p != q { println("want aliased pointers but got different after", s); bad = true }; if *q != v + 1 { println("wrong value want", v + 1, "got", *q, "after", s); bad = true } }
+./escape.go:63:6: can inline i_escapes with cost 10 as: func(int) *int { i = <nil>; i = x; return &i }
+./escape.go:69:6: can inline j_escapes with cost 11 as: func(int) *int { j := x; j = x; return &j }
+./escape.go:75:6: can inline k_escapes with cost 8 as: func(int) *int { k := x; return &k }
+./escape.go:80:6: can inline in_escapes with cost 3 as: func(int) *int { return &x }
+./escape.go:84:6: can inline send with cost 3 as: func(chan int, int) { c <- x }
+./escape.go:88:6: cannot inline select_escapes: unhandled op GO
+./escape.go:90:2: can inline select_escapes.gowrap1 with cost 7 as: func() { send(.autotmp_3, .autotmp_4) }
+./escape.go:98:6: cannot inline select_escapes1: unhandled op GO
+./escape.go:105:3: can inline select_escapes1.gowrap1 with cost 7 as: func() { send(.autotmp_8, .autotmp_9) }
+./escape.go:114:6: can inline range_escapes with cost 20 as: func(int) *int { a = <nil>; a[0] = x; for loop; return nil }
+./escape.go:124:6: can inline range_escapes2 with cost 43 as: func(int, int) (*int, *int) { a = <nil>; p = <nil>; a[0] = x; a[1] = y; k = <nil>; v = <nil>; for loop; return p[0], p[1] }
+./escape.go:137:6: can inline for_escapes2 with cost 37 as: func(int, int) (*int, *int) { p = <nil>; n := 0; i := x; for loop; return p[0], p[1] }
+./escape.go:148:6: cannot inline for_escapes3: function too complex: cost 176 exceeds budget 80
+./escape.go:154:10: can inline for_escapes3.func1 with cost 2 as: func() *int { return p }
+./escape.go:160:6: can inline out_escapes with cost 8 as: func(int) (int, *int) { x = i; p = &x; return  }
+./escape.go:166:6: can inline out_escapes_2 with cost 7 as: func(int) (int, *int) { x = i; return x, &x }
+./escape.go:171:6: cannot inline defer1: unhandled op GO
+./escape.go:173:5: can inline defer1.func1 with cost 6 as: func() { x = i; c <- 1 }
+./escape.go:178:6: cannot inline main: function too complex: cost 1333 exceeds budget 80
+./escape.go:48:5: inlining call to val
+./escape.go:90:9: inlining call to send
+./escape.go:105:10: inlining call to send
+./escape.go:179:19: inlining call to i_escapes
+./escape.go:179:33: inlining call to i_escapes
+./escape.go:182:18: inlining call to j_escapes
+./escape.go:182:32: inlining call to j_escapes
+./escape.go:185:18: inlining call to k_escapes
+./escape.go:185:32: inlining call to k_escapes
+./escape.go:188:19: inlining call to in_escapes
+./escape.go:188:34: inlining call to in_escapes
+./escape.go:197:22: inlining call to range_escapes
+./escape.go:197:41: inlining call to range_escapes
+./escape.go:200:23: inlining call to range_escapes2
+./escape.go:201:10: inlining call to chkalias
+./escape.go:203:21: inlining call to for_escapes2
+./escape.go:204:10: inlining call to chkalias
+./escape.go:209:20: inlining call to out_escapes
+./escape.go:210:20: inlining call to out_escapes
+./escape.go:213:22: inlining call to out_escapes_2
+./escape.go:214:22: inlining call to out_escapes_2
+./escape.go:17:18: make([]*int, 0, 100) escapes to heap:
+./escape.go:17:18:   flow: {heap} = &{storage for make([]*int, 0, 100)}:
+./escape.go:17:18:     from make([]*int, 0, 100) (spill) at ./escape.go:17:18
+./escape.go:17:18:     from allptr = make([]*int, 0, 100) (assign) at ./escape.go:17:5
+./escape.go:17:18:     from allptr (global) at ./escape.go:17:5
+./escape.go:17:18: make([]*int, 0, 100) escapes to heap
+./escape.go:19:17: parameter q leaks to {heap} with derefs=0:
+./escape.go:19:17:   flow: {heap} = q:
+./escape.go:19:17:     from allptr[n + 1] = q (assign) at ./escape.go:25:14
+./escape.go:19:17:     from allptr[n + 1] (assign to S[Index]) at ./escape.go:25:8
+./escape.go:19:14: parameter p leaks to {heap} with derefs=0:
+./escape.go:19:14:   flow: {heap} = p:
+./escape.go:19:14:     from allptr[n] = p (assign) at ./escape.go:24:12
+./escape.go:19:14:     from allptr[n] (assign to S[Index]) at ./escape.go:24:8
+./escape.go:19:14: leaking param: p
+./escape.go:19:17: leaking param: q
+./escape.go:19:25: s does not escape
+./escape.go:36:10: p does not escape
+./escape.go:36:13: q does not escape
+./escape.go:36:28: s does not escape
+./escape.go:47:13: parameter q leaks to {heap} with derefs=0:
+./escape.go:47:13:   flow: {temp} = q:
+./escape.go:47:13:     from noalias(p, q, s) (call parameter) at ./escape.go:49:9
+./escape.go:47:13:   flow: {heap} = {temp}:
+./escape.go:47:10: parameter p leaks to {heap} with derefs=0:
+./escape.go:47:10:   flow: {temp} = p:
+./escape.go:47:10:     from noalias(p, q, s) (call parameter) at ./escape.go:49:9
+./escape.go:47:10:   flow: {heap} = {temp}:
+./escape.go:47:10: leaking param: p
+./escape.go:47:13: leaking param: q
+./escape.go:47:28: s does not escape
+./escape.go:52:15: p does not escape
+./escape.go:52:18: q does not escape
+./escape.go:52:33: s does not escape
+./escape.go:64:6: i escapes to heap:
+./escape.go:64:6:   flow: ~r0 = &i:
+./escape.go:64:6:     from &i (address-of) at ./escape.go:66:9
+./escape.go:64:6:     from return &i (return) at ./escape.go:66:2
+./escape.go:64:6: moved to heap: i
+./escape.go:70:6: j escapes to heap:
+./escape.go:70:6:   flow: ~r0 = &j:
+./escape.go:70:6:     from &j (address-of) at ./escape.go:72:9
+./escape.go:70:6:     from return &j (return) at ./escape.go:72:2
+./escape.go:70:6: moved to heap: j
+./escape.go:76:2: k escapes to heap:
+./escape.go:76:2:   flow: ~r0 = &k:
+./escape.go:76:2:     from &k (address-of) at ./escape.go:77:9
+./escape.go:76:2:     from return &k (return) at ./escape.go:77:2
+./escape.go:76:2: moved to heap: k
+./escape.go:80:17: x escapes to heap:
+./escape.go:80:17:   flow: ~r0 = &x:
+./escape.go:80:17:     from &x (address-of) at ./escape.go:81:9
+./escape.go:80:17:     from return &x (return) at ./escape.go:81:2
+./escape.go:80:17: parameter x leaks to ~r0 with derefs=0:
+./escape.go:80:17:   flow: ~r0 = &x:
+./escape.go:80:17:     from &x (address-of) at ./escape.go:81:9
+./escape.go:80:17:     from return &x (return) at ./escape.go:81:2
+./escape.go:80:17: moved to heap: x
+./escape.go:84:11: c does not escape
+./escape.go:90:2: func literal escapes to heap:
+./escape.go:90:2:   flow: {heap} = &{storage for func literal}:
+./escape.go:90:2:     from func literal (spill) at ./escape.go:90:2
+./escape.go:90:2:     from go (func literal)() (go) at ./escape.go:90:2
+./escape.go:90:2: select_escapes capturing by value: .autotmp_3 (addr=false assign=false width=8)
+./escape.go:90:2: select_escapes capturing by value: .autotmp_4 (addr=false assign=false width=8)
+./escape.go:92:7: req escapes to heap:
+./escape.go:92:7:   flow: ~r0 = &req:
+./escape.go:92:7:     from &req (address-of) at ./escape.go:93:10
+./escape.go:92:7:     from return &req (return) at ./escape.go:93:3
+./escape.go:92:7: moved to heap: req
+./escape.go:105:3: func literal escapes to heap:
+./escape.go:105:3:   flow: {heap} = &{storage for func literal}:
+./escape.go:105:3:     from func literal (spill) at ./escape.go:105:3
+./escape.go:105:3:     from go (func literal)() (go) at ./escape.go:105:3
+./escape.go:105:3: select_escapes1 capturing by value: .autotmp_8 (addr=false assign=false width=8)
+./escape.go:105:15: select_escapes1 capturing by value: .autotmp_9 (addr=false assign=false width=8)
+./escape.go:107:8: req escapes to heap:
+./escape.go:107:8:   flow: p = &req:
+./escape.go:107:8:     from &req (address-of) at ./escape.go:108:11
+./escape.go:107:8:     from p[i] = &req (assign) at ./escape.go:108:9
+./escape.go:107:8: moved to heap: req
+./escape.go:117:9: v escapes to heap:
+./escape.go:117:9:   flow: ~r0 = &v:
+./escape.go:117:9:     from &v (address-of) at ./escape.go:118:10
+./escape.go:117:9:     from return &v (return) at ./escape.go:118:3
+./escape.go:117:9: moved to heap: v
+./escape.go:129:9: v escapes to heap:
+./escape.go:129:9:   flow: p = &v:
+./escape.go:129:9:     from &v (address-of) at ./escape.go:131:10
+./escape.go:129:9:     from p[k] = &v (assign) at ./escape.go:131:8
+./escape.go:129:9:   flow: ~r1 = p:
+./escape.go:129:9:     from p[1] (fixed-array-index-of) at ./escape.go:133:16
+./escape.go:129:9:     from return p[0], p[1] (return) at ./escape.go:133:2
+./escape.go:129:9: moved to heap: v
+./escape.go:140:2: i escapes to heap:
+./escape.go:140:2:   flow: p = &i:
+./escape.go:140:2:     from &i (address-of) at ./escape.go:142:10
+./escape.go:140:2:     from p[n] = &i (assign) at ./escape.go:142:8
+./escape.go:140:2:   flow: ~r1 = p:
+./escape.go:140:2:     from p[1] (fixed-array-index-of) at ./escape.go:145:16
+./escape.go:140:2:     from return p[0], p[1] (return) at ./escape.go:145:2
+./escape.go:140:2: moved to heap: i
+./escape.go:152:3: for_escapes3 capturing by value: p (addr=false assign=false width=8)
+./escape.go:152:11: new(int) escapes to heap:
+./escape.go:152:11:   flow: p = &{storage for new(int)}:
+./escape.go:152:11:     from new(int) (spill) at ./escape.go:152:11
+./escape.go:152:11:     from p := new(int) (assign) at ./escape.go:152:5
+./escape.go:152:11:   flow: ~r0 = p:
+./escape.go:152:11:     from return p (return) at ./escape.go:154:24
+./escape.go:154:10: func literal escapes to heap:
+./escape.go:154:10:   flow: f = &{storage for func literal}:
+./escape.go:154:10:     from func literal (spill) at ./escape.go:154:10
+./escape.go:154:10:     from f[n] = func literal (assign) at ./escape.go:154:8
+./escape.go:152:11: new(int) escapes to heap
+./escape.go:154:10: func literal escapes to heap
+./escape.go:160:26: x escapes to heap:
+./escape.go:160:26:   flow: p = &x:
+./escape.go:160:26:     from &x (address-of) at ./escape.go:162:6
+./escape.go:160:26:     from p = &x (assign) at ./escape.go:162:4
+./escape.go:160:26: moved to heap: x
+./escape.go:166:28: x escapes to heap:
+./escape.go:166:28:   flow: p = &x:
+./escape.go:166:28:     from &x (address-of) at ./escape.go:168:12
+./escape.go:166:28:     from return x, &x (return) at ./escape.go:168:2
+./escape.go:166:28: moved to heap: x
+./escape.go:173:5: func literal escapes to heap:
+./escape.go:173:5:   flow: {heap} = &{storage for func literal}:
+./escape.go:173:5:     from func literal (spill) at ./escape.go:173:5
+./escape.go:173:5:     from go (func literal)() (go) at ./escape.go:173:2
+./escape.go:171:21: defer1 capturing by ref: x (addr=false assign=true width=8)
+./escape.go:171:21: x escapes to heap:
+./escape.go:171:21:   flow: {storage for func literal} = &x:
+./escape.go:171:21:     from x (captured by a closure) at ./escape.go:173:14
+./escape.go:171:21:     from x (reference) at ./escape.go:173:14
+./escape.go:171:13: defer1 capturing by value: i (addr=false assign=false width=8)
+./escape.go:172:2: defer1 capturing by value: c (addr=false assign=false width=8)
+./escape.go:171:13: parameter i leaks to {storage for func literal} with derefs=0:
+./escape.go:171:13:   flow: {storage for func literal} = i:
+./escape.go:171:13:     from i (captured by a closure) at ./escape.go:173:18
+./escape.go:171:13:     from i (by value) at ./escape.go:173:18
+./escape.go:171:21: moved to heap: x
+./escape.go:173:5: func literal escapes to heap
+./escape.go:224:9: "BUG: no escape" escapes to heap:
+./escape.go:224:9:   flow: {heap} = &{storage for "BUG: no escape"}:
+./escape.go:224:9:     from "BUG: no escape" (spill) at ./escape.go:224:9
+./escape.go:224:9:     from panic("BUG: no escape") (call parameter) at ./escape.go:224:8
+./escape.go:214:22: x escapes to heap:
+./escape.go:214:22:   flow: p = &x:
+./escape.go:214:22:     from &x (address-of) at ./escape.go:214:22
+./escape.go:214:22:     from x, p = x, &x (assign-pair) at ./escape.go:214:22
+./escape.go:214:22:   flow: .autotmp_17 = p:
+./escape.go:214:22:   flow: q = .autotmp_17:
+./escape.go:214:22:     from _, q = int(.autotmp_16), .autotmp_17 (assign-pair) at ./escape.go:214:7
+./escape.go:214:22:   flow: {temp} = q:
+./escape.go:214:22:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:214:22:   flow: {heap} = {temp}:
+./escape.go:210:20: x escapes to heap:
+./escape.go:210:20:   flow: p = &x:
+./escape.go:210:20:     from &x (address-of) at ./escape.go:210:20
+./escape.go:210:20:     from p = &x (assign) at ./escape.go:210:20
+./escape.go:210:20:   flow: .autotmp_13 = p:
+./escape.go:210:20:   flow: q = .autotmp_13:
+./escape.go:210:20:     from _, q = int(.autotmp_12), .autotmp_13 (assign-pair) at ./escape.go:210:7
+./escape.go:210:20:   flow: {temp} = q:
+./escape.go:210:20:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:210:20:   flow: {heap} = {temp}:
+./escape.go:203:21: i escapes to heap:
+./escape.go:203:21:   flow: p = &i:
+./escape.go:203:21:     from &i (address-of) at ./escape.go:203:21
+./escape.go:203:21:     from p[n] = &i (assign) at ./escape.go:203:21
+./escape.go:203:21:   flow: ~r1 = p:
+./escape.go:203:21:     from p[1] (fixed-array-index-of) at ./escape.go:203:21
+./escape.go:203:21:     from ~r0, ~r1 = p[0], p[1] (assign-pair) at ./escape.go:203:21
+./escape.go:203:21:   flow: .autotmp_7 = ~r1:
+./escape.go:203:21:   flow: q = .autotmp_7:
+./escape.go:203:21:     from p, q = (*int)(.autotmp_6), .autotmp_7 (assign-pair) at ./escape.go:203:7
+./escape.go:203:21:   flow: {temp} = q:
+./escape.go:203:21:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:203:21:   flow: {heap} = {temp}:
+./escape.go:200:23: v escapes to heap:
+./escape.go:200:23:   flow: p = &v:
+./escape.go:200:23:     from &v (address-of) at ./escape.go:200:23
+./escape.go:200:23:     from p[k] = &v (assign) at ./escape.go:200:23
+./escape.go:200:23:   flow: ~r1 = p:
+./escape.go:200:23:     from p[1] (fixed-array-index-of) at ./escape.go:200:23
+./escape.go:200:23:     from ~r0, ~r1 = p[0], p[1] (assign-pair) at ./escape.go:200:23
+./escape.go:200:23:   flow: .autotmp_5 = ~r1:
+./escape.go:200:23:   flow: q = .autotmp_5:
+./escape.go:200:23:     from p, q = (*int)(.autotmp_4), .autotmp_5 (assign-pair) at ./escape.go:200:7
+./escape.go:200:23:   flow: {temp} = q:
+./escape.go:200:23:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:200:23:   flow: {heap} = {temp}:
+./escape.go:197:41: v escapes to heap:
+./escape.go:197:41:   flow: ~r0 = &v:
+./escape.go:197:41:     from &v (address-of) at ./escape.go:197:41
+./escape.go:197:41:     from ~r0 = &v (assign-pair) at ./escape.go:197:41
+./escape.go:197:41:   flow: q = ~r0:
+./escape.go:197:41:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:197:7
+./escape.go:197:41:   flow: {temp} = q:
+./escape.go:197:41:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:197:41:   flow: {heap} = {temp}:
+./escape.go:188:34: x escapes to heap:
+./escape.go:188:34:   flow: ~r0 = &x:
+./escape.go:188:34:     from &x (address-of) at ./escape.go:188:34
+./escape.go:188:34:     from ~r0 = &x (assign-pair) at ./escape.go:188:34
+./escape.go:188:34:   flow: q = ~r0:
+./escape.go:188:34:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:188:7
+./escape.go:188:34:   flow: {temp} = q:
+./escape.go:188:34:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:188:34:   flow: {heap} = {temp}:
+./escape.go:185:32: k escapes to heap:
+./escape.go:185:32:   flow: ~r0 = &k:
+./escape.go:185:32:     from &k (address-of) at ./escape.go:185:32
+./escape.go:185:32:     from ~r0 = &k (assign-pair) at ./escape.go:185:32
+./escape.go:185:32:   flow: q = ~r0:
+./escape.go:185:32:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:185:7
+./escape.go:185:32:   flow: {temp} = q:
+./escape.go:185:32:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:185:32:   flow: {heap} = {temp}:
+./escape.go:182:32: j escapes to heap:
+./escape.go:182:32:   flow: ~r0 = &j:
+./escape.go:182:32:     from &j (address-of) at ./escape.go:182:32
+./escape.go:182:32:     from ~r0 = &j (assign-pair) at ./escape.go:182:32
+./escape.go:182:32:   flow: q = ~r0:
+./escape.go:182:32:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:182:7
+./escape.go:182:32:   flow: {temp} = q:
+./escape.go:182:32:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:182:32:   flow: {heap} = {temp}:
+./escape.go:179:33: i escapes to heap:
+./escape.go:179:33:   flow: ~r0 = &i:
+./escape.go:179:33:     from &i (address-of) at ./escape.go:179:33
+./escape.go:179:33:     from ~r0 = &i (assign-pair) at ./escape.go:179:33
+./escape.go:179:33:   flow: q = ~r0:
+./escape.go:179:33:     from p, q := ~r0, ~r0 (assign-pair) at ./escape.go:179:7
+./escape.go:179:33:   flow: {temp} = q:
+./escape.go:179:33:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:179:33:   flow: {heap} = {temp}:
+./escape.go:213:22: x escapes to heap:
+./escape.go:213:22:   flow: p = &x:
+./escape.go:213:22:     from &x (address-of) at ./escape.go:213:22
+./escape.go:213:22:     from x, p = x, &x (assign-pair) at ./escape.go:213:22
+./escape.go:213:22:   flow: .autotmp_15 = p:
+./escape.go:213:22:   flow: p = .autotmp_15:
+./escape.go:213:22:     from _, p = int(.autotmp_14), .autotmp_15 (assign-pair) at ./escape.go:213:7
+./escape.go:213:22:   flow: {temp} = p:
+./escape.go:213:22:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:213:22:   flow: {heap} = {temp}:
+./escape.go:209:20: x escapes to heap:
+./escape.go:209:20:   flow: p = &x:
+./escape.go:209:20:     from &x (address-of) at ./escape.go:209:20
+./escape.go:209:20:     from p = &x (assign) at ./escape.go:209:20
+./escape.go:209:20:   flow: .autotmp_11 = p:
+./escape.go:209:20:   flow: p = .autotmp_11:
+./escape.go:209:20:     from _, p = int(.autotmp_10), .autotmp_11 (assign-pair) at ./escape.go:209:7
+./escape.go:209:20:   flow: {temp} = p:
+./escape.go:209:20:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:209:20:   flow: {heap} = {temp}:
+./escape.go:197:22: v escapes to heap:
+./escape.go:197:22:   flow: ~r0 = &v:
+./escape.go:197:22:     from &v (address-of) at ./escape.go:197:22
+./escape.go:197:22:     from ~r0 = &v (assign-pair) at ./escape.go:197:22
+./escape.go:197:22:   flow: p = ~r0:
+./escape.go:197:22:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:197:7
+./escape.go:197:22:   flow: {temp} = p:
+./escape.go:197:22:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:197:22:   flow: {heap} = {temp}:
+./escape.go:188:19: x escapes to heap:
+./escape.go:188:19:   flow: ~r0 = &x:
+./escape.go:188:19:     from &x (address-of) at ./escape.go:188:19
+./escape.go:188:19:     from ~r0 = &x (assign-pair) at ./escape.go:188:19
+./escape.go:188:19:   flow: p = ~r0:
+./escape.go:188:19:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:188:7
+./escape.go:188:19:   flow: {temp} = p:
+./escape.go:188:19:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:188:19:   flow: {heap} = {temp}:
+./escape.go:185:18: k escapes to heap:
+./escape.go:185:18:   flow: ~r0 = &k:
+./escape.go:185:18:     from &k (address-of) at ./escape.go:185:18
+./escape.go:185:18:     from ~r0 = &k (assign-pair) at ./escape.go:185:18
+./escape.go:185:18:   flow: p = ~r0:
+./escape.go:185:18:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:185:7
+./escape.go:185:18:   flow: {temp} = p:
+./escape.go:185:18:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:185:18:   flow: {heap} = {temp}:
+./escape.go:182:18: j escapes to heap:
+./escape.go:182:18:   flow: ~r0 = &j:
+./escape.go:182:18:     from &j (address-of) at ./escape.go:182:18
+./escape.go:182:18:     from ~r0 = &j (assign-pair) at ./escape.go:182:18
+./escape.go:182:18:   flow: p = ~r0:
+./escape.go:182:18:     from p, q = ~r0, ~r0 (assign-pair) at ./escape.go:182:7
+./escape.go:182:18:   flow: {temp} = p:
+./escape.go:182:18:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:182:18:   flow: {heap} = {temp}:
+./escape.go:179:19: i escapes to heap:
+./escape.go:179:19:   flow: ~r0 = &i:
+./escape.go:179:19:     from &i (address-of) at ./escape.go:179:19
+./escape.go:179:19:     from ~r0 = &i (assign-pair) at ./escape.go:179:19
+./escape.go:179:19:   flow: p = ~r0:
+./escape.go:179:19:     from p, q := ~r0, ~r0 (assign-pair) at ./escape.go:179:7
+./escape.go:179:19:   flow: {temp} = p:
+./escape.go:179:19:     from chk(p, q, 17, "out_escapes_2") (call parameter) at ./escape.go:215:5
+./escape.go:179:19:   flow: {heap} = {temp}:
+./escape.go:179:19: moved to heap: i
+./escape.go:179:33: moved to heap: i
+./escape.go:182:18: moved to heap: j
+./escape.go:182:32: moved to heap: j
+./escape.go:185:18: moved to heap: k
+./escape.go:185:32: moved to heap: k
+./escape.go:188:19: moved to heap: x
+./escape.go:188:34: moved to heap: x
+./escape.go:197:22: moved to heap: v
+./escape.go:197:41: moved to heap: v
+./escape.go:200:23: moved to heap: v
+./escape.go:203:21: moved to heap: i
+./escape.go:209:20: moved to heap: x
+./escape.go:210:20: moved to heap: x
+./escape.go:213:22: moved to heap: x
+./escape.go:214:22: moved to heap: x
+./escape.go:224:9: "BUG: no escape" escapes to heap
