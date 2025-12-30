@@ -1,20 +1,17 @@
 package main
 
 import (
+	"encoding/csv"
+	"os"
+	"os/exec"
 	"path/filepath"
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func curdir() string {
-	_, f, _, _ := runtime.Caller(0)
-	return filepath.Dir(f)
-}
-
-func testdatadir() string {
-	return filepath.Join(curdir(), "testdata")
+func movedtoheapYaml() string {
+	return filepath.Join(curdir(), "movedtoheap_test.yaml")
 }
 
 func TestMovedToHeap(t *testing.T) {
@@ -22,4 +19,39 @@ func TestMovedToHeap(t *testing.T) {
 	rows := movedToHeapHandle(lines)
 
 	assert.Len(t, rows, 28)
+}
+
+func runcmd(name string, args []string) error {
+	cmd := exec.Command(name, args...)
+	return cmd.Run()
+}
+
+func TestCodeQLMovedToHeap(t *testing.T) {
+	os.Chdir(projectroot())
+	assert.Nil(
+		t,
+		runcmd("go", []string{
+			"run",
+			"./cmd/batch_clone_build",
+			"-noclone",
+			movedtoheapYaml(),
+		}),
+	)
+	assert.Nil(
+		t,
+		runcmd("go", []string{
+			"run",
+			"./cmd/codeql_qdriver",
+			"-collect",
+			movedtoheapYaml(),
+		}),
+	)
+	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/moved_to_heap_var_test/escape.csv")
+	f, err := os.Open(csvPath)
+	assert.Nil(t, err)
+	reader := csv.NewReader(f)
+	recs, err := reader.ReadAll()
+	assert.Nil(t, err)
+	recs = recs[1:] // remove header
+	assert.Len(t, recs, 12)
 }
