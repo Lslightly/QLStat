@@ -33,3 +33,7 @@ func (r *Repo) Clone(root string) error {
 func (r *Repo) DBPath(dbroot string) string {
 	return filepath.Join(r.GitSource.HostDir(dbroot), r.DirBaseName)
 }
+
+func (r *Repo) DBExtPath(dbroot string) string {
+	return filepath.Join(r.DBPath(dbroot), "ext")
+}

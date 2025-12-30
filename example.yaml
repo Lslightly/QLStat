@@ -18,10 +18,12 @@ buildRepos: # "*" means all repositories. "-" means repositories defined in "sou
 # query
 queryconfig:
   resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
-  queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
-    - "-"
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
-  queries: # queries
-    - convInterface/assign.ql
-    - convInterface/call.ql
   parallelCore: 20 # parallel cores to run query
+  queryGrps:
+    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
+        - "-"
+      queries: # queries
+        - convInterface/assign.ql
+        - convInterface/call.ql
+      externals: [] # names for external predicates. For each predicate $pred, the external database(csv file) is stored in $dbRoot/path/to/repo/ext/$pred.csv

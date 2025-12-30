@@ -59,8 +59,10 @@ func main() {
 		runtime.GOMAXPROCS(cfg.ParallelCore)
 	}
 	if !onlyDecode {
-		fmt.Println("Executing queries")
-		queriesExec(cfg.GetQueryRepos())
+		for grpi, grp := range cfg.Grps {
+			fmt.Printf("Grp %d: Executing queries\n", grpi)
+			queriesExec(grp)
+		}
 	}
 	fmt.Println("Decoding results")
 	decodeResults(targetDecodeFmt)
@@ -107,10 +109,11 @@ first remove all content in ${config.OutResultRoot}/${qScriptNameNoExt}
 dump error log for ${repo} in ${config.OutResultRoot}/${qScriptNameNoExt}/error.log
 dump stdout/stderr for ${repo} in ${config.OutResultRoot}/${qScriptNameNoExt}/log/${repo}.log
 */
-func queriesExec(repos []config.Repo) {
-	bar := progressbar.Default(int64(len(repos) * len(cfg.Queries)))
-	for _, qScript := range cfg.Queries {
-		query := config.CreateQuery(qScript)
+func queriesExec(grp config.QueryGroup) {
+	repos := cfg.ConvStrSliceToRepoSlice(grp.QueryRepos)
+	bar := progressbar.Default(int64(len(repos) * len(grp.Queries)))
+	for _, qScript := range grp.Queries {
+		query := config.CreateQuery(qScript, grp.Externals)
 
 		queryLogDir := path.Join(cfg.PassLogDir("query"), query.PathNoExt())
 		err := os.MkdirAll(queryLogDir, 0775)
@@ -125,7 +128,7 @@ func queriesExec(repos []config.Repo) {
 			go func(repo config.Repo, query config.Query) {
 				defer wg.Done()
 				queryForOneRepo(repo, query)
-				bar.Describe(fmt.Sprintf("%-15s %-15s\t", query.Name(), repo.DirBaseName))
+				bar.Describe(fmt.Sprintf("%-15s %-15s", query.Name(), repo.DirBaseName))
 				bar.Add(1)
 			}(repo, query)
 		}
@@ -166,18 +169,23 @@ func queryForOneRepo(repo config.Repo, query config.Query) {
 	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Minute)
 	defer cancel()
 
-	cmd := exec.CommandContext(ctx, "codeql", []string{
-		"query",
-		"run",
-		fmt.Sprintf("-d=%s", repo.DBPath(cfg.DBRoot)),
-		fmt.Sprintf("--search-path=%s", filepath.Join(cfg.QueryRoot, "lib")),
-		query.AbsPathWithRoot(cfg.QueryRoot),
-		fmt.Sprintf("--output=%s", filepath.Join(qResultDir, repo.DirBaseName)+".bqrs"),
-	}...)
+	cmd := exec.CommandContext(ctx, "codeql",
+		append([]string{
+			"query",
+			"run",
+			fmt.Sprintf("-d=%s", repo.DBPath(cfg.DBRoot)),
+			fmt.Sprintf("--search-path=%s", filepath.Join(cfg.QueryRoot, "lib")),
+			query.AbsPathWithRoot(cfg.QueryRoot),
+			fmt.Sprintf("--output=%s", filepath.Join(qResultDir, repo.DirBaseName)+".bqrs"),
+		},
+			query.ExternalOptions(repo.DBExtPath(cfg.DBRoot))...,
+		)...,
+	)
 	cmd.Stdout = repoOut
 	cmd.Stderr = repoErr
 	repoOut.WriteString(cmd.String() + "\n")
-	cmd.Run()
+	// TODO report errors in query
+	_ = cmd.Run()
 	repoOut.Sync()
 	repoErr.Sync()
 }
@@ -197,13 +205,16 @@ func decodeResults(tgtFmt string) {
 	checkDecodeTargetFmt(tgtFmt)
 
 	// decode bqrs only in query result dir
-	bar := progressbar.Default(int64(len(cfg.Queries)))
-	defer bar.Close()
-	for _, qScript := range cfg.Queries {
-		bar.Add(1)
-		query := config.CreateQuery(qScript)
-		bar.Describe(fmt.Sprintf("Decoding %s dir", query.Name()))
-		decodeFilesInDir(tgtFmt, query)
+	for grpi, grp := range cfg.Grps {
+		queries := grp.Queries
+		bar := progressbar.Default(int64(len(queries)))
+		defer bar.Close()
+		for _, qScript := range queries {
+			bar.Add(1)
+			query := config.CreateQuery(qScript, grp.Externals)
+			bar.Describe(fmt.Sprintf("Grp %d: Decoding %s dir", grpi, query.Name()))
+			decodeFilesInDir(tgtFmt, query)
+		}
 	}
 }
 
@@ -256,12 +267,14 @@ func decodeFilesInDir(tgtFmt string, query config.Query) {
 }
 
 func collectCSVs() {
-	bar := progressbar.Default(int64(len(cfg.Queries)))
-	for _, qScript := range cfg.Queries {
-		query := config.CreateQuery(qScript)
-		bar.Describe("collecting for " + query.PathNoExt())
-		collectCSVsForQuery(query)
-		bar.Add(1)
+	for grpi, grp := range cfg.Grps {
+		bar := progressbar.Default(int64(len(grp.Queries)))
+		for _, qScript := range grp.Queries {
+			query := config.CreateQuery(qScript, grp.Externals)
+			bar.Describe(fmt.Sprintf("Grp %d: Collecting for "+query.PathNoExt(), grpi))
+			collectCSVsForQuery(query)
+			bar.Add(1)
+		}
 	}
 }
 

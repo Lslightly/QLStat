@@ -1,21 +1,24 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 	"strings"
 )
 
 type Query struct {
-	path string
+	path      string
+	externals []string
 }
 
-func CreateQuery(path string) Query {
+func CreateQuery(path string, externals []string) Query {
 	if filepath.Ext(path) != ".ql" {
 		log.Fatalf("Suffix of query source %s is not .ql.", path)
 	}
 	return Query{
-		path: path,
+		path:      path,
+		externals: externals,
 	}
 }
 
@@ -33,4 +36,12 @@ func (q *Query) AbsPathWithRoot(queryRoot string) string {
 
 func (q *Query) AbsPathNoExtWithRoot(root string) string {
 	return filepath.Join(root, q.PathNoExt())
+}
+
+func (q *Query) ExternalOptions(extroot string) (res []string) {
+	const format string = "--external=%s=%s"
+	for _, ext := range q.externals {
+		res = append(res, fmt.Sprintf(format, ext, filepath.Join(extroot, ext)+".csv"))
+	}
+	return
 }

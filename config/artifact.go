@@ -19,11 +19,16 @@ type Artifact struct {
 }
 
 type QueryConfig struct {
-	ResultRoot   string   `yaml:"resultRoot"`
-	QueryRepos   []string `yaml:"queryRepos"`
-	QueryRoot    string   `yaml:"queryRoot"`
-	Queries      []string `yaml:"queries"`
-	ParallelCore int      `yaml:"parallelCore"`
+	ResultRoot   string       `yaml:"resultRoot"`
+	QueryRoot    string       `yaml:"queryRoot"`
+	ParallelCore int          `yaml:"parallelCore"`
+	Grps         []QueryGroup `yaml:"queryGrps"`
+}
+
+type QueryGroup struct {
+	QueryRepos []string `yaml:"queryRepos"`
+	Queries    []string `yaml:"queries"`
+	Externals  []string `yaml:"externals"`
 }
 
 var Nowstr string = time.Now().Local().Format("0102-150405")
@@ -92,7 +97,7 @@ func (art *Artifact) GetBuildRepos() (res []Repo) {
 	}
 }
 
-func (art *Artifact) GetQueryRepos() (res []Repo) {
+func (art *Artifact) ConvStrSliceToRepoSlice(queryRepos []string) (res []Repo) {
 	switch art.getBuildType() {
 	case buildWrittenInSources:
 		for _, gs := range art.Sources {
@@ -108,7 +113,7 @@ func (art *Artifact) GetQueryRepos() (res []Repo) {
 		for _, gs := range art.Sources {
 			gs.calcFullName2RepoCache()
 		}
-		for _, fullname := range art.QueryRepos {
+		for _, fullname := range queryRepos {
 			for _, gs := range art.Sources {
 				if repo, ok := gs.fullName2RepoCache[fullname]; ok {
 					res = append(res, repo)
