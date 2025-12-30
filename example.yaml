@@ -8,12 +8,23 @@ sources:
     fullnames:
       - junegunn/fzf
       - gookit/filter
+  - prefix: https://test/
+    fullnames:
+      - false-sharing
 
 # build
 language: go # language to analyze
 buildTimeout: 3600 # timeout for building repository
 buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
   - "-"
+
+# generate external predicates predicate
+# For repositories in each group, same genScript will be applied in the root directory of repositories
+# "goescape" means `go build -a -gcflags="-m=2" . `. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases
+externalGenGrps:
+  - genRepos:
+      - false-sharing
+    genScript: goescape
 
 # query
 queryconfig:
@@ -26,4 +37,4 @@ queryconfig:
       queries: # queries
         - convInterface/assign.ql
         - convInterface/call.ql
-      externals: [] # names for external predicates. For each predicate $pred, the external database(csv file) is stored in $dbRoot/path/to/repo/ext/$pred.csv
+      externals: [] # names for external predicates. For each predicate $pred, the external database(csv file) is stored in $dbRoot/path/to/repo/ext/$pred.csv. Currently only "movedToHeap" is supported.
