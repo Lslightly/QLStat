@@ -50,6 +50,7 @@ queryconfig:
         - false-sharing
       queries:
         - escape_ext/moved_to_heap_var_test.ql
+        - escape_ext/inlined_var_test.ql
       externals:
         - movedToHeap
 

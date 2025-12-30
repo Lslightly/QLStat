@@ -54,4 +54,13 @@ func TestCodeQLMovedToHeap(t *testing.T) {
 	assert.Nil(t, err)
 	recs = recs[1:] // remove header
 	assert.Len(t, recs, 12)
+
+	csvPath = filepath.Join(codeqlResultDir(), "escape_ext/inlined_var_test/false-sharing.csv")
+	f, err = os.Open(csvPath)
+	assert.Nil(t, err)
+	reader = csv.NewReader(f)
+	recs, err = reader.ReadAll()
+	assert.Nil(t, err)
+	recs = recs[1:] // remove header
+	assert.Len(t, recs, 1)
 }
