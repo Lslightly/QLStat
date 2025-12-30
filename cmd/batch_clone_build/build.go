@@ -86,6 +86,7 @@ func batchBuild(cfg *config.Artifact) {
 		fmt.Fprintf(logFile, "%s,%s\n", res.dbPath, res.status)
 	}
 
+	removeCleanupScript(cfg)
 	if len(failedPaths) > 0 {
 		createCleanupScript(cfg, failedPaths)
 	}
@@ -119,8 +120,15 @@ func buildDirSetup(cfg *config.Artifact) (*os.File, *os.File) {
 	return csvFile, logFile
 }
 
+func removeCleanupScript(cfg *config.Artifact) {
+	scriptPath := cfg.DBCleanUpScriptPath()
+	if _, err := os.Stat(scriptPath); err == nil {
+		os.Remove(scriptPath)
+	}
+}
+
 func createCleanupScript(cfg *config.Artifact, failedPaths []string) {
-	cleanupScriptPath := filepath.Join(cfg.DBRoot, "cleanup_failed_directories.sh")
+	cleanupScriptPath := cfg.DBCleanUpScriptPath()
 	var scriptContent strings.Builder
 	scriptContent.WriteString(`#!/bin/bash
 # This script removes database directories for builds that failed or timed out.
