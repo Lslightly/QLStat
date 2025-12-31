@@ -18,7 +18,7 @@ import (
 
 func batchExternalGen(cfg *config.Artifact) {
 	for grpi, grp := range cfg.ExtGenGrps {
-		fmt.Printf("Grp %d: Gen External Databases", grpi)
+		fmt.Printf("Grp %d: Gen External Databases\n", grpi)
 		genGrp(cfg, grp)
 	}
 }
@@ -29,23 +29,27 @@ func genGrp(cfg *config.Artifact, grp config.ExternalGenGroup) {
 	bar := progressbar.Default(int64(len(repos)))
 	for _, repo := range repos {
 		wg.Add(1)
+		bar.Describe(fmt.Sprintf("Gen external database for %s\n", repo.DirBaseName))
 		go func() {
 			defer wg.Done()
 			defer bar.Add(1)
-			bar.Describe(fmt.Sprintf("Gen external database for %s", repo.DirBaseName))
 			if grp.GenScript == "goescape" {
 				gobuildM2(cfg, repo)
 				adaptEscape(cfg, repo)
 			} else {
-				runscript(cfg, repo, grp.GenScript)
+				genscript(cfg, repo, grp.GenScript)
 			}
 		}()
 	}
 	wg.Wait()
 }
 
+func extgenLogDir(cfg *config.Artifact) string {
+	return filepath.Join(cfg.LogRoot, "extgen")
+}
+
 func escapeLogPath(cfg *config.Artifact, repo config.Repo) string {
-	return filepath.Join(repo.DirPath(cfg.PassLogDir("extgen")), "m2.log")
+	return filepath.Join(repo.DirPath(extgenLogDir(cfg)), "m2.log")
 }
 
 func gobuildM2(cfg *config.Artifact, repo config.Repo) {
@@ -63,7 +67,7 @@ func gobuildM2(cfg *config.Artifact, repo config.Repo) {
 	_ = cmd.Run()
 }
 func adaptEscape(cfg *config.Artifact, repo config.Repo) {
-	outFile, errFile := utils.CreateOutAndErr(filepath.Join(repo.DirPath(cfg.PassLogDir("extgen")), "adaptEscape"))
+	outFile, errFile := utils.CreateOutAndErr(filepath.Join(repo.DirPath(extgenLogDir(cfg)), "adaptEscape"))
 	defer outFile.Close()
 	defer errFile.Close()
 	cmd := exec.Command(
@@ -78,12 +82,19 @@ func adaptEscape(cfg *config.Artifact, repo config.Repo) {
 	cmd.Stdout, cmd.Stderr = outFile, errFile
 	_ = cmd.Run()
 }
-func runscript(cfg *config.Artifact, repo config.Repo, script string) {
-	outFile, errFile := utils.CreateOutAndErr(filepath.Join(repo.DirPath(cfg.PassLogDir("extgen")), "runscript"))
+func genscript(cfg *config.Artifact, repo config.Repo, script string) {
+	outFile, errFile := utils.CreateOutAndErr(filepath.Join(repo.DirPath(extgenLogDir(cfg)), "runscript"))
 	defer outFile.Close()
 	defer errFile.Close()
 	elems := strings.Split(script, " ")
-	cmd := exec.Command(elems[0], elems[1:]...)
+	var cmd *exec.Cmd
+	if len(elems) == 1 {
+		cmd = exec.Command(elems[0])
+	} else {
+		cmd = exec.Command(elems[0], elems[1:]...)
+	}
+	cmd.Dir = repo.DirPath(cfg.RepoRoot) // run genscript in $repoRoot/path/to/repo
 	cmd.Stdout, cmd.Stderr = outFile, errFile
+	fmt.Printf("cwd: %s, out: %s, err: %s, cmd: %s\n", cmd.Dir, outFile.Name(), errFile.Name(), cmd.String())
 	_ = cmd.Run()
 }
