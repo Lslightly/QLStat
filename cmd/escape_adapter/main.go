@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -29,16 +29,25 @@ func init() {
 	}
 }
 
-func readLinesFromFile(path string) []string {
-	buf, err := os.ReadFile(path)
-	if err != nil {
-		log.Panicf("error when reading file %s: %v", path, err)
-	}
-	lines := strings.Split(string(buf), "\n")
-	return lines
-}
+type LineConsumer func(i int, line string) bool
+type LineGenerator func(yield LineConsumer)
 
-type HandleFunc func(lines []string)
+func createLineGen(logpath string) (res LineGenerator) {
+	return func(yield LineConsumer) {
+		f := utils.OpenFile(logpath)
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for i := 0; scanner.Scan(); i++ {
+			line := strings.TrimSpace(scanner.Text())
+			if line == "" {
+				continue
+			}
+			if !yield(i, line) {
+				break
+			}
+		}
+	}
+}
 
 func main() {
 	flag.Parse()
@@ -47,13 +56,12 @@ func main() {
 		os.Exit(1)
 	}
 	logpath := flag.Arg(0)
-	lines := readLinesFromFile(logpath)
 	utils.MkdirAll(OutDir)
 	if Opts.movedToHeap {
 		func() {
 			outfile := utils.CreateFile(filepath.Join(OutDir, "movedToHeap.csv"))
 			defer outfile.Close()
-			fmt.Fprint(outfile, strings.Join(movedToHeapHandle(lines), "\n"))
+			fmt.Fprint(outfile, strings.Join(movedToHeapHandle(createLineGen(logpath)), "\n"))
 		}()
 	}
 }

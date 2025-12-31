@@ -37,3 +37,11 @@ func Remkdir(dir string) {
 	}
 	MkdirAll(dir)
 }
+
+func OpenFile(f string) *os.File {
+	res, err := os.Open(f)
+	if err != nil {
+		log.Panicf("error occurs when open file %s: %v", res.Name(), err)
+	}
+	return res
+}

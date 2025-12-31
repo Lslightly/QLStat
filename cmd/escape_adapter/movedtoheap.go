@@ -18,9 +18,9 @@ func convint(s string) int {
 }
 
 // path, startLine, startCol
-func movedToHeapHandle(lines []string) (csvRows []string) {
+func movedToHeapHandle(lineGen LineGenerator) (csvRows []string) {
 	const pat string = "%s,%d,%d"
-	for i, line := range lines {
+	for i, line := range lineGen {
 		if !strings.Contains(line, "moved to heap") {
 			continue
 		}
@@ -28,6 +28,7 @@ func movedToHeapHandle(lines []string) (csvRows []string) {
 		matches := regex.FindStringSubmatch(line)
 		if len(matches) == 0 {
 			log.Printf("line %d with moved to heap but no match\n", i+1)
+			continue
 		}
 		path, startLineStr, startColStr := matches[1], matches[2], matches[3]
 		csvRows = append(csvRows, fmt.Sprintf(pat, filepath.Clean(path), convint(startLineStr), convint(startColStr)))

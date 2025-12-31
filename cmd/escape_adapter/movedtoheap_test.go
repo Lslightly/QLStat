@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -14,9 +15,12 @@ func movedtoheapYaml() string {
 	return filepath.Join(curdir(), "movedtoheap_test.yaml")
 }
 
+var (
+	once sync.Once
+)
+
 func TestMovedToHeap(t *testing.T) {
-	lines := readLinesFromFile(filepath.Join(testdatadir(), "escape.log"))
-	rows := movedToHeapHandle(lines)
+	rows := movedToHeapHandle(createLineGen(filepath.Join(testdatadir(), "escape.log")))
 
 	assert.Len(t, rows, 28)
 }
@@ -26,7 +30,7 @@ func runcmd(name string, args []string) error {
 	return cmd.Run()
 }
 
-func movedToHeapSetup(t *testing.T) {
+func movedToHeapSetup(t assert.TestingT) {
 	os.Chdir(projectroot())
 	assert.Nil(
 		t,
@@ -50,19 +54,25 @@ func movedToHeapSetup(t *testing.T) {
 
 // need more timeout
 func TestCodeQLMovedToHeap1(t *testing.T) {
-	movedToHeapSetup(t)
+	once.Do(func() {
+		movedToHeapSetup(t)
+	})
 	moved_to_heap_var_test(t)
 	inlined_var_test(t)
 }
 
 func TestCodeQLMovedToHeap2(t *testing.T) {
-	movedToHeapSetup(t)
+	once.Do(func() {
+		movedToHeapSetup(t)
+	})
 	ref_in_go_test(t)
 	heapvar_use_in_go_test(t)
 }
 
 func TestCodeQLMovedToHeap3(t *testing.T) {
-	movedToHeapSetup(t)
+	once.Do(func() {
+		movedToHeapSetup(t)
+	})
 	same_scope_go_ref_heapvar_test(t)
 }
 
