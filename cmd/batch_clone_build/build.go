@@ -46,28 +46,11 @@ func batchBuild(cfg *config.Artifact) {
 	defer csvFile.Close()
 	defer logFile.Close()
 
-	repos := cfg.ConvStrSliceToRepoSlice(cfg.BuildRepos)
-	if len(repos) < 10 {
-		repoNames := make([]string, 0)
-		for _, repo := range repos {
-			repoNames = append(repoNames, repo.FullName)
-		}
-		log.Println("Create database for", repoNames)
-	} else {
-		log.Println("Create database for", len(repos), "repositories")
-	}
-
-	bar := progressbar.Default(int64(len(repos)), "Creating database")
-	defer bar.Close()
 	resChan := make(chan CreateDBResult, 10)
 	var wg sync.WaitGroup
 
-	for _, repo := range repos {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			build(cfg, repo, resChan)
-		}()
+	for _, grp := range cfg.BuildGrps {
+		buildGrp(cfg, &wg, resChan, grp)
 	}
 
 	go func() {
@@ -89,6 +72,29 @@ func batchBuild(cfg *config.Artifact) {
 		createCleanupScript(cfg, failedPaths)
 	}
 	log.Printf("Script execution finished. Results written to: %s, log written to: %s", csvFile.Name(), logFile.Name())
+}
+
+func buildGrp(cfg *config.Artifact, wg *sync.WaitGroup, resChan chan CreateDBResult, grp config.BuildGroup) {
+	repos := cfg.ConvStrSliceToRepoSlice(grp.BuildRepos)
+	bar := progressbar.Default(int64(len(repos)), "Creating database")
+	defer bar.Close()
+	if len(repos) < 10 {
+		repoNames := make([]string, 0)
+		for _, repo := range repos {
+			repoNames = append(repoNames, repo.FullName)
+		}
+		log.Println("Create database for", repoNames)
+	} else {
+		log.Println("Create database for", len(repos), "repositories")
+	}
+
+	for _, repo := range repos {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			build(cfg, repo, resChan, grp.BuildCommand)
+		}()
+	}
 }
 
 func buildDirSetup(cfg *config.Artifact) (*os.File, *os.File) {
@@ -142,7 +148,7 @@ done
 	log.Printf("Cleanup script for failed directories created at: %s", cleanupScriptPath)
 }
 
-func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult) {
+func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult, buildcommand string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.BuildTimeout)*time.Second)
 	defer cancel()
 
@@ -151,7 +157,13 @@ func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult) 
 	defer errFile.Close()
 	dbPath := repo.DBPath(cfg.DBRoot)
 	utils.MkdirAll(filepath.Dir(dbPath))
-	cmd := exec.CommandContext(ctx, "codeql", "database", "create", dbPath, "-l="+cfg.Lang, "--overwrite", "-s="+repo.DirPath(cfg.RepoRoot))
+	args := []string{
+		"database", "create", dbPath, "-l=" + cfg.Lang, "--overwrite", "-s=" + repo.DirPath(cfg.RepoRoot),
+	}
+	if buildcommand != "default" {
+		args = append(args, "-c", buildcommand)
+	}
+	cmd := exec.CommandContext(ctx, "codeql", args...)
 	cmd.Stdout = outFile
 	cmd.Stderr = errFile
 

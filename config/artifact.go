@@ -15,7 +15,7 @@ type Artifact struct {
 	DBRoot       string             `yaml:"dbRoot"`
 	Lang         string             `yaml:"language"`
 	BuildTimeout int                `yaml:"buildTimeout"`
-	BuildRepos   []string           `yaml:"buildRepos"` // ["-"] indicates all repositories
+	BuildGrps    []BuildGroup       `yaml:"buildGrps"`
 	ExtGenGrps   []ExternalGenGroup `yaml:"externalGenGrps"`
 	QueryConfig  `yaml:"queryconfig"`
 }
@@ -25,6 +25,11 @@ type QueryConfig struct {
 	QueryRoot    string       `yaml:"queryRoot"`
 	ParallelCore int          `yaml:"parallelCore"`
 	QueryGrps    []QueryGroup `yaml:"queryGrps"`
+}
+
+type BuildGroup struct {
+	BuildRepos   []string `yaml:"buildRepos"`
+	BuildCommand string   `yaml:"buildCmd"`
 }
 
 type QueryGroup struct {

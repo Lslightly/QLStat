@@ -12,8 +12,10 @@ sources:
 # build
 language: go # language to analyze
 buildTimeout: 3600 # timeout for building repository
-buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
-  - "-"
+buildGrps:
+  - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+    - "-"
+    buildCmd: default
 
 # generate external predicates predicate
 # For repositories in each group, same genScript will be applied in the root directory of repositories
