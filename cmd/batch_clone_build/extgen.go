@@ -55,7 +55,7 @@ func gobuildM2(cfg *config.Artifact, repo config.Repo) {
 		"go",
 		"build",
 		"-a",
-		"-gcflags=-m=2",
+		"-gcflags=all=-m=2",
 		".",
 	)
 	cmd.Stderr = logfile
