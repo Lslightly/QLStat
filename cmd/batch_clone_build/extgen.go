@@ -76,6 +76,8 @@ func adaptEscape(cfg *config.Artifact, repo config.Repo) {
 		"./cmd/escape_adapter",
 		"-dir",
 		repo.DBExtDir(cfg.DBRoot),
+		"-src",
+		repo.DirPath(cfg.RepoRoot),
 		"-movedToHeap",
 		escapeLogPath(cfg, repo),
 	)

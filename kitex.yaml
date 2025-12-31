@@ -1,0 +1,40 @@
+logRoot: logs
+repoRoot: repos # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+
+# clone
+sources:
+  - prefix: https://github.com/ # clone url prefix
+    fullnames:
+      - cloudwego/kitex-examples
+
+# build
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildGrps:
+- buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+    - "-"
+  buildCmd: ./build.sh
+
+# generate external predicates predicate
+# For repositories in each group, same genScript will be applied in the root directory of repositories
+# "goescape" means `go build -a -gcflags="-m=2" . `. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases
+externalGenGrps:
+  - genRepos:
+      - "-"
+    genScript: ./extgen.sh
+
+# query
+queryconfig:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  parallelCore: 20 # parallel cores to run query
+  queryGrps:
+    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
+        - "-"
+      queries: # queries
+        - escape_ext/heapvar_should_move.ql
+        - escape_ext/moved_to_heap_var_test.ql
+        - escape_ext/loc_test.ql
+      externals:
+        - movedToHeap

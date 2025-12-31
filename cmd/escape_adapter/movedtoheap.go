@@ -17,6 +17,18 @@ func convint(s string) int {
 	return res
 }
 
+func cleanpath(path string) string {
+	absSrcRoot, err := filepath.Abs(SrcRoot)
+	if err != nil {
+		log.Panicf("error when converting SrcRoot: %s: %v", SrcRoot, err)
+	}
+	path = filepath.Clean(path)
+	if filepath.IsAbs(path) {
+		return path
+	}
+	return filepath.Clean(filepath.Join(absSrcRoot, path))
+}
+
 // path, startLine, startCol
 func movedToHeapHandle(lineGen LineGenerator) (csvRows []string) {
 	const pat string = "%s,%d,%d"
@@ -31,7 +43,7 @@ func movedToHeapHandle(lineGen LineGenerator) (csvRows []string) {
 			continue
 		}
 		path, startLineStr, startColStr := matches[1], matches[2], matches[3]
-		csvRows = append(csvRows, fmt.Sprintf(pat, filepath.Clean(path), convint(startLineStr), convint(startColStr)))
+		csvRows = append(csvRows, fmt.Sprintf(pat, cleanpath(path), convint(startLineStr), convint(startColStr)))
 	}
 	return
 }

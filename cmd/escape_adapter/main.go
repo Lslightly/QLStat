@@ -12,8 +12,9 @@ import (
 )
 
 var (
-	OutDir string
-	Opts   Options
+	OutDir  string
+	SrcRoot string
+	Opts    Options
 )
 
 type Options struct {
@@ -21,7 +22,8 @@ type Options struct {
 }
 
 func init() {
-	flag.StringVar(&OutDir, "dir", "./", "directory to store output csv")
+	flag.StringVar(&OutDir, "dir", "./", "(required) directory to store output csv")
+	flag.StringVar(&SrcRoot, "src", "./", "(required) source root directory. Paths will be adjusted to absolute path according to source root directory")
 	flag.BoolVar(&Opts.movedToHeap, "movedToHeap", false, "enable \"moved to heap\" dump")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "Escape Analysis Adapter\nUsage: go run cmd/escape_adapter [options...] <escape analysis log>")

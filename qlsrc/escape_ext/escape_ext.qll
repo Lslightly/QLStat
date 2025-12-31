@@ -2,7 +2,7 @@ import go
 import ext_preds
 
 predicate locMovedToHeap(Location loc) {
-    movedToHeap(loc.getFile().getRelativePath(), loc.getStartLine(), loc.getStartColumn())
+    movedToHeap(loc.getFile().getAbsolutePath(), loc.getStartLine(), loc.getStartColumn())
 }
 
 class MovedToHeapVar extends LocalVariable {
@@ -14,7 +14,7 @@ class MovedToHeapVar extends LocalVariable {
 class InlinedMovedToHeapVar extends CallExpr {
     InlinedMovedToHeapVar() {
         movedToHeap(
-            this.getFile().getRelativePath(),
+            this.getFile().getAbsolutePath(),
             this.getLocation().getStartLine(),
             this.getCalleeExpr().getLocation().getEndColumn()+1 // left parenthesis start col, the location of inlined return var
         )
