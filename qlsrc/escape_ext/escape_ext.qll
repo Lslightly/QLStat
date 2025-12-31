@@ -5,7 +5,7 @@ predicate locMovedToHeap(Location loc) {
     movedToHeap(loc.getFile().getRelativePath(), loc.getStartLine(), loc.getStartColumn())
 }
 
-class MovedToHeapVar extends Variable {
+class MovedToHeapVar extends LocalVariable {
     MovedToHeapVar() {
         locMovedToHeap(this.getLocation())
     }
