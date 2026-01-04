@@ -67,7 +67,9 @@ Results are processed in three stages:
 2. **Decoding**: Convert bqrs results to specified format (CSV, JSON, etc.)
 3. **Collection**: Aggregate results from all repositories into a single dataset
 
-### 5. Escape Analysis Extension
+## Extensions
+
+### Go Escape Analysis Extension
 
 QLStat supports extending CodeQL with escape analysis data through the escape adapter:
 
