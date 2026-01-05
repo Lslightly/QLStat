@@ -57,12 +57,20 @@ predicate isVarInTypeDef(Variable var) {
 
 /** Gets the innermost block statement to which this AST node belongs, if any. */
 pragma[nomagic]
-BlockStmt getEnclosingBlock(AstNode ident) {
-    result = parentInSameBlock*(ident.getParent())
+BlockStmt getEnclosingBlock(AstNode node) {
+    result = parentInSameBlock*(node.getParent())
 }
 
 /** Gets the parent node of this AST node, but without crossing block boundaries. */
 private AstNode parentInSameBlock(AstNode node) {
     result = node.getParent()
     and not node instanceof BlockStmt
+}
+
+predicate inDeferStmt(AstNode node) {
+    exists(DeferStmt defer | defer = node.getParent*())
+}
+
+predicate inGoStmt(AstNode node) {
+    exists(GoStmt gostmt | gostmt = node.getParent*())
 }

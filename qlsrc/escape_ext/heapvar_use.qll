@@ -40,8 +40,9 @@ GoStmt goStmtRefsVar(MovedToHeapVar var) {
 }
 
 /**
- * judge by line, which may introduce inaccuracy
+ * judge by line and defer, which may introduce inaccuracy
  */
 predicate laterThan(RefHeapVar ref, GoStmt gostmt) {
     ref.getLocation().getStartLine() > gostmt.getLocation().getEndLine()
+    or inDeferStmt(ref)
 }
