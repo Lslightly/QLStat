@@ -1,4 +1,5 @@
 import escape_ext
+import lib.helper
 
 class RefHeapVar extends ReferenceExpr {
     MovedToHeapVar var;
@@ -19,10 +20,6 @@ class RefHeapVarInGo extends RefHeapVar {
     GoStmt getAWrapGo() { result = wrapGoStmt }
 }
 
-BlockStmt getEnclosingBlock(Stmt stmt) {
-    result = stmt.getParent()
-}
-
 /**
  * for all gostmt which references var in its closure
  * if scopes of these gostmts are same as var's scope, then
@@ -31,7 +28,7 @@ BlockStmt getEnclosingBlock(Stmt stmt) {
 predicate allGoStmtRefsVarInSameScope(MovedToHeapVar var) {
     forex(GoStmt gostmt
         |gostmt = goStmtRefsVar(var)
-        |getEnclosingBlock(gostmt).getScope() = var.getScope()
+        |getEnclosingBlock(gostmt) = getEnclosingBlock(var.getDeclaration())
     )
 }
 
@@ -40,4 +37,11 @@ predicate allGoStmtRefsVarInSameScope(MovedToHeapVar var) {
  */
 GoStmt goStmtRefsVar(MovedToHeapVar var) {
     exists(RefHeapVarInGo ref | ref.getAVar() = var | ref.getAWrapGo() = result)
+}
+
+/**
+ * judge by line, which may introduce inaccuracy
+ */
+predicate laterThan(RefHeapVar ref, GoStmt gostmt) {
+    ref.getLocation().getStartLine() > gostmt.getLocation().getEndLine()
 }

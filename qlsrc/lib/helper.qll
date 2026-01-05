@@ -54,3 +54,15 @@ predicate isInTypeDeclOrTypeDefSpec(Expr expr) {
 predicate isVarInTypeDef(Variable var) {
     isInTypeDeclOrTypeDefSpec(var.getDeclaration())
 }
+
+/** Gets the innermost block statement to which this AST node belongs, if any. */
+pragma[nomagic]
+BlockStmt getEnclosingBlock(AstNode ident) {
+    result = parentInSameBlock*(ident.getParent())
+}
+
+/** Gets the parent node of this AST node, but without crossing block boundaries. */
+private AstNode parentInSameBlock(AstNode node) {
+    result = node.getParent()
+    and not node instanceof BlockStmt
+}

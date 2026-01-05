@@ -3,23 +3,21 @@ import go
 import heapvar_use
 
 
-/**
- * judge by line, which may introduce inaccuracy
- */
-predicate laterThan(RefHeapVar ref, GoStmt gostmt) {
-    ref.getLocation().getStartLine() > gostmt.getLocation().getEndLine()
-}
-
 predicate refNotInGo(RefHeapVar ref) {
     not exists(GoStmt gostmt | ref.getParent*() = gostmt)
 }
 
+/**
+ * TODO
+ *      defer
+ *      referenced in another function literal which is not go closure
+ */
 
-from MovedToHeapVar var, RefHeapVarInGo refInGo
+from MovedToHeapVar var
 where allGoStmtRefsVarInSameScope(var)
-    and not
-        exists(RefHeapVar ref // ref which is not in go closure but later than gostmt which refs var
-            | refNotInGo(ref)
-              and exists(GoStmt gostmt | gostmt = goStmtRefsVar(var) | laterThan(ref, gostmt)))
-    and refInGo.getAVar() = var
-select var.getName() as varName, var.getLocation() as varDefLoc, refInGo.getLocation() as refInGoLoc
+    and forall(RefHeapVar ref
+        | ref.getAVar() = var and refNotInGo(ref)
+        | not exists(GoStmt gostmt | gostmt = goStmtRefsVar(var) | laterThan(ref, gostmt))
+    ) // ref which is not in go closure should not be later than gostmt which refs var
+    // and refInGo.getAVar() = var
+select var.getLocation() as varDefLoc/*, refInGo.getLocation() as refInGoLoc*/
