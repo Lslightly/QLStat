@@ -41,3 +41,9 @@ In this configuration:
 - The query `escape_ext/moved_to_heap_var_test.ql` can then use the `movedToHeap` predicate to identify variables that escape to the heap
 
 This enables queries that answer questions like "Which functions have parameters that always escape to the heap?" or "What patterns correlate with heap allocation in goroutines?"
+
+## Small Wins
+
+| Repository                                                    | Problematic Commit | Pull Request                               |
+| ------------------------------------------------------------- | ------------------ | ------------------------------------------ |
+| [rclone/rclone](https://github.com/rclone/rclone/tree/master) | 73bcae224          | https://github.com/rclone/rclone/pull/9079 |
