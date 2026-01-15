@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 func CreateOutAndErr(sharedPathNoExt string) (outFile, errFile *os.File) {
@@ -44,4 +45,13 @@ func OpenFile(f string) *os.File {
 		log.Panicf("error occurs when open file %s: %v", res.Name(), err)
 	}
 	return res
+}
+
+func CurFileDir() string {
+	_, file, _, _ := runtime.Caller(1)
+	return filepath.Dir(file)
+}
+
+func ProjectRoot() string {
+	return filepath.Dir(CurFileDir())
 }

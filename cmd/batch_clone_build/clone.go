@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
@@ -53,12 +54,24 @@ func batchClone(cfg *config.Artifact) {
 						}
 					}
 				}()
-				if err := repo.Clone(cfg.RepoRoot); err != nil {
-					statusChan <- cloneStatus{
-						fullname: repo.FullName,
-						err:      err,
+				if _, err := os.Stat(repo.DirPath(cfg.RepoRoot)); err == nil {
+					// the repo exists
+					if err := repo.Checkout(cfg.RepoRoot); err != nil {
+						statusChan <- cloneStatus{
+							fullname: repo.FullName,
+							err:      err,
+						}
+						return
 					}
-					return
+				} else {
+					// the repo does not exist
+					if err := repo.Clone(cfg.RepoRoot); err != nil {
+						statusChan <- cloneStatus{
+							fullname: repo.FullName,
+							err:      err,
+						}
+						return
+					}
 				}
 				statusChan <- cloneStatus{
 					fullname: repo.FullName,

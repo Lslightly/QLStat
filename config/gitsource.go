@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/Lslightly/qlstat/utils"
 )
@@ -23,6 +24,11 @@ func (gs *GitSource) calcFullName2RepoCache() {
 	gs.fullName2RepoCache = make(map[string]Repo)
 	baseNameCnt := make(map[string]int)
 	for _, fullName := range gs.FullNames {
+		branch := ""
+		if strings.Contains(fullName, " ") { // extract branch
+			elems := strings.Split(fullName, " ")
+			fullName, branch = elems[0], elems[1]
+		}
 		dirName := filepath.Base(fullName)
 		if count, ok := baseNameCnt[dirName]; ok {
 			baseNameCnt[dirName] = count + 1
@@ -32,6 +38,7 @@ func (gs *GitSource) calcFullName2RepoCache() {
 		}
 		repo := Repo{
 			FullName:    fullName,
+			branch:      branch,
 			DirBaseName: dirName,
 			GitSource:   gs,
 		}

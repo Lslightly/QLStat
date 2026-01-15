@@ -8,7 +8,7 @@ sources:
     fullnames:
       - junegunn/fzf
       - gookit/filter
-      - rclone/rclone
+      - rclone/rclone v1.72.1 # you can specify branch/commit hash here with only one space in between org/repo and branch. If repository eixsts, git checkout will be used to switch branch
   - prefix: https://test/
     fullnames:
       - false-sharing

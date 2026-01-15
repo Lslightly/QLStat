@@ -1,0 +1,7 @@
+logRoot: logs
+repoRoot: repos
+dbRoot: codeql-db
+sources:
+  - prefix: https://github.com/ # clone url prefix
+    fullnames:
+      - Lslightly-courses/zhihu-parallel-pi-calc QLStat-test
