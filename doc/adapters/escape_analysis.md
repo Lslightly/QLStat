@@ -47,3 +47,12 @@ This enables queries that answer questions like "Which functions have parameters
 | Repository                                                    | Problematic Commit | Pull Request                               |
 | ------------------------------------------------------------- | ------------------ | ------------------------------------------ |
 | [rclone/rclone](https://github.com/rclone/rclone/tree/master) | 73bcae224          | https://github.com/rclone/rclone/pull/9079 |
+
+## HeapVar Should Move
+
+dolt
+[`queryist`](https://github.com/dolthub/dolt/blob/4dd08b249b639f4c717a33b9f073a77d80a4425a/go/cmd/dolt/commands/fetch.go#L79)
+[`queryist`](https://github.com/dolthub/dolt/blob/4dd08b249b639f4c717a33b9f073a77d80a4425a/go/cmd/dolt/commands/pull.go#L111)
+
+protoactor-go
+[`plan`](https://github.com/asynkron/protoactor-go/blob/1d6aa320fbac4692a3cbe08f391e4c6632229a1a/cluster/clusterproviders/consul/provider_actor.go#L88)
