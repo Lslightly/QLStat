@@ -15,4 +15,5 @@ where allGoStmtRefsVarInSameScope(var)
         | not exists(GoStmt gostmt | gostmt = goStmtRefsVar(var) | laterThan(ref, gostmt))
           and not refInClosure(ref) // reference should appear in another closure since capturing the dataflow of closure is hard
     ) // ref which is not in go closure should not be later than gostmt which refs var
+    and count(goStmtRefsVar(var)) = 1 // only 1 GoStmt references var. Otherwise, >=2 means sharing.
 select var.getLocation() as varDefLoc
