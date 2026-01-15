@@ -14,7 +14,7 @@ import (
 
 // generate external predicates predicate
 // For repositories in each group, same genScript will be applied in the root directory of repositories
-// "gobuild" means `go build -a -gcflags="-m=2" . `. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases
+// "gobuild" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases
 
 func batchExternalGen(cfg *config.Artifact) {
 	for grpi, grp := range cfg.ExtGenGrps {
@@ -60,8 +60,8 @@ func gobuildM2(cfg *config.Artifact, repo config.Repo) {
 		"go",
 		"build",
 		"-a",
-		"-gcflags=all=-m=2",
-		".",
+		"-gcflags=-m=2",
+		"./...",
 	)
 	cmd.Stderr = logfile
 	cmd.Dir = repo.DirPath(cfg.RepoRoot)

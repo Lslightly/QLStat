@@ -6,7 +6,7 @@ The escape analysis extension in QLStat enables integration of Go's compiler esc
 
 The architecture follows these steps:
 
-1. **Compilation with Escape Analysis**: The Go compiler is invoked with `-gcflags="-m=2"` to generate detailed escape analysis information during compilation.
+1. **Compilation with Escape Analysis**: The Go compiler is invoked with `-gcflags=-m=2 ./...` to generate detailed escape analysis information during compilation.
 2. **Log Collection**: The compiler's stderr output containing escape analysis results is captured in log files (e.g., `m2.log`).
 3. **Data Extraction**: The escape_adapter tool parses these logs and extracts information about which variables are moved to the heap.
 4. **Predicate Generation**: The extracted data is converted into CSV format as external predicates for CodeQL.
@@ -23,7 +23,7 @@ The following example from [movedtoheap_test.yaml](../../cmd/escape_adapter/move
 externalGenGrps:
   - genRepos:
       - "-"
-    genScript: goescape  # This triggers go build with -gcflags="-m=2"
+    genScript: goescape  # This triggers go build with -gcflags=-m=2 ./...
 
 queryconfig:
   queryGrps:
