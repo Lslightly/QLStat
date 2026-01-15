@@ -2,22 +2,14 @@ package main
 
 import (
 	"path/filepath"
-	"runtime"
+
+	"github.com/Lslightly/qlstat/utils"
 )
 
-func curdir() string {
-	_, f, _, _ := runtime.Caller(0)
-	return filepath.Dir(f)
-}
-
 func testdatadir() string {
-	return filepath.Join(curdir(), "testdata")
-}
-
-func projectroot() string {
-	return filepath.Dir(filepath.Dir(curdir()))
+	return filepath.Join(utils.CurFileDir(), "testdata")
 }
 
 func codeqlResultDir() string {
-	return filepath.Join(projectroot(), "codeqlResult")
+	return filepath.Join(utils.ProjectRoot(), "codeqlResult")
 }

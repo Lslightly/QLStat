@@ -3,16 +3,16 @@ package main
 import (
 	"encoding/csv"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sync"
 	"testing"
 
+	"github.com/Lslightly/qlstat/utils"
 	"github.com/stretchr/testify/assert"
 )
 
 func movedtoheapYaml() string {
-	return filepath.Join(curdir(), "movedtoheap_test.yaml")
+	return filepath.Join(utils.CurFileDir(), "movedtoheap_test.yaml")
 }
 
 var (
@@ -25,30 +25,24 @@ func TestMovedToHeap(t *testing.T) {
 	assert.Len(t, rows, 28)
 }
 
-func runcmd(name string, args []string) error {
-	cmd := exec.Command(name, args...)
-	return cmd.Run()
-}
-
 func movedToHeapSetup(t assert.TestingT) {
-	os.Chdir(projectroot())
 	assert.Nil(
 		t,
-		runcmd("go", []string{
+		utils.Runcmd(utils.ProjectRoot(), "go", []string{
 			"run",
 			"./cmd/batch_clone_build",
 			"-noclone",
 			movedtoheapYaml(),
-		}),
+		}...),
 	)
 	assert.Nil(
 		t,
-		runcmd("go", []string{
+		utils.Runcmd(utils.ProjectRoot(), "go", []string{
 			"run",
 			"./cmd/codeql_qdriver",
 			"-collect",
 			movedtoheapYaml(),
-		}),
+		}...),
 	)
 }
 
