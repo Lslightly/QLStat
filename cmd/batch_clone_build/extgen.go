@@ -33,6 +33,7 @@ func genGrp(cfg *config.Artifact, grp config.ExternalGenGroup) {
 		go func() {
 			defer wg.Done()
 			defer bar.Add(1)
+			utils.MkdirAll(repo.DirPath(extgenLogDir(cfg))) // mkdir $logRoot/extgen/path/to/repo
 			if grp.GenScript == "goescape" {
 				gobuildM2(cfg, repo)
 				adaptEscape(cfg, repo)
