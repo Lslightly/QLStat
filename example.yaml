@@ -8,7 +8,7 @@ sources:
     fullnames:
       - junegunn/fzf
       - gookit/filter
-      - rclone/rclone v1.72.1 # you can specify branch/commit hash here with only one space in between org/repo and branch. If repository eixsts, git checkout will be used to switch branch
+      - rclone/rclone v1.72.1 # you can specify branch/commit hash here with only spaces in between org/repo and branch. If repository eixsts, git checkout will be used to switch branch
   - prefix: https://test/
     fullnames:
       - false-sharing
@@ -25,7 +25,7 @@ buildGrps:
 
 # generate external predicates predicate
 # For repositories in each group, same genScript will be applied in the root directory of repositories
-# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases
+# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
 externalGenGrps:
   - genRepos:
       - false-sharing
