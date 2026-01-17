@@ -2,6 +2,8 @@
 
 ## Architecture
 
+![](../figures/escape_analysis.png)
+
 The escape analysis extension in QLStat enables integration of Go's compiler escape analysis data with CodeQL queries. This allows developers to analyze memory allocation patterns and identify variables that are allocated on the heap versus stack.
 
 The architecture follows these steps:
