@@ -26,7 +26,7 @@ func (gs *GitSource) calcFullName2RepoCache() {
 	for _, fullName := range gs.FullNames {
 		branch := ""
 		if strings.Contains(fullName, " ") { // extract branch
-			elems := strings.Split(fullName, " ")
+			elems := strings.Fields(fullName)
 			fullName, branch = elems[0], elems[1]
 		}
 		dirName := filepath.Base(fullName)
