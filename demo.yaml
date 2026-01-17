@@ -1,0 +1,58 @@
+logRoot: logs
+repoRoot: repos # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+
+# clone
+sources:
+  - prefix: https://github.com/ # clone url prefix
+    fullnames:
+      - rclone/rclone 28c187b # you can specify branch/commit hash here with only spaces in between org/repo and branch. If repository eixsts, git checkout will be used to switch branch
+      - cloudwego/kitex
+      - Lslightly/dolt heapvar_should_move
+      - Lslightly/kitex-examples heapvar_should_move
+
+# build database
+# buildCmd will be executed in the root directory of repositories.
+# "default" buildCmd lets codeql figure out the build command.
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildGrps:
+  - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+    - rclone/rclone
+    - Lslightly/dolt
+    buildCmd: default
+  - buildRepos:
+    - Lslightly/kitex-examples
+    buildCmd: ./build.sh
+  - buildRepos:
+    - cloudwego/kitex
+    buildCmd: go build -a ./...
+
+
+# generate external predicates predicate
+# For repositories in each group, same genScript will be applied in the root directory of repositories
+# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
+externalGenGrps:
+  - genRepos:
+      - rclone/rclone
+      - cloudwego/kitex
+    genScript: goescape
+  - genRepos:
+      - Lslightly/dolt
+      - Lslightly/kitex-examples
+    genScript: ./extgen.sh
+
+# query
+queryconfig:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  parallelCore: 20 # parallel cores to run query
+  queryGrps:
+    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
+        - rclone/rclone
+        - Lslightly/dolt
+        - cloudwego/kitex
+        - Lslightly/kitex-examples
+      queries: # queries
+        - escape_ext/heapvar_should_move.ql
+      externals: [movedToHeap] # names for external predicates. For each predicate $pred, the external database(csv file) is stored in $dbRoot/path/to/repo/ext/$pred.csv. Currently only "movedToHeap" is supported.

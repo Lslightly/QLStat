@@ -13,7 +13,7 @@ sources:
       # - CWE-400
       # - CWE-525
       # - CWE-807
-      # - escape
+      - escape
       - false-sharing
       # - intraResourceLeak
       # - memacc
@@ -30,6 +30,9 @@ buildGrps:
     - "-"
   buildCmd: default
 
+# generate external predicates predicate
+# For repositories in each group, same genScript will be applied in the root directory of repositories
+# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
 externalGenGrps:
   - genRepos:
       - escape
