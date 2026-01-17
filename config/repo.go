@@ -32,9 +32,6 @@ func (r *Repo) DirPath(root string) string {
 
 func (r *Repo) Clone(root string) error {
 	args := []string{"clone"}
-	if r.branch != "" { // add branch
-		args = append(args, "-b", r.branch)
-	}
 	args = append(args, r.RemoteURL(), r.DirPath(root))
 	var errBuf bytes.Buffer
 	err := utils.RuncmdWithBuf(utils.ProjectRoot(), nil, &errBuf, "git", args...)

@@ -72,6 +72,12 @@ func batchClone(cfg *config.Artifact) {
 						}
 						return
 					}
+					if err := repo.Checkout(cfg.RepoRoot); err != nil {
+						statusChan <- cloneStatus{
+							fullname: repo.FullName,
+							err:      err,
+						}
+					}
 				}
 				statusChan <- cloneStatus{
 					fullname: repo.FullName,
