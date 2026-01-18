@@ -14,6 +14,11 @@ QLStat provides a comprehensive framework for large-scale empirical analysis of 
 - **Data Collection**: Aggregation of results from multiple repositories into unified datasets
 - **Language Support**: Currently focused on Go, with extensibility for other languages supported by CodeQL
 
+## Setup
+
+- Install [CodeQL CLI](https://docs.github.com/en/code-security/how-tos/scan-code-for-vulnerabilities/scan-from-the-command-line/setting-up-the-codeql-cli#1-download-the-codeql-cli-tar-archive) and add codeql to your PATH.
+- Install [Go](https://go.dev/dl/).
+
 ## Usage
 
 ### 1. Configuration
