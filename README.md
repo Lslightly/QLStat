@@ -99,4 +99,17 @@ For detailed information about the storage structure and architecture, please re
     title = {QLStat},
     howpublished = {\url{https://github.com/Lslightly/QLStat}},
 }
+
+@article{li2026empiricalMemPerfSafetyGo,
+    title = {Go语言程序的内存性能与安全问题实证研究},
+    author = {李清伟,丁伯尧,张昱,陈金宝},
+    journal = {软件学报},
+    volume = {37},
+    number = {3},
+    pages = {1197},
+    numpages = {28},
+    year = {2026},
+    doi = {10.13328/j.cnki.jos.007464},
+    publisher = {科学出版社}
+}
 ```
