@@ -1,0 +1,16 @@
+# alerts for heapvar_should_move.ql
+- repo: Lslightly/dolt
+  checkout: heapvar_should_move
+  tppaths: # true positive paths
+    - go/cmd/dolt/commands/fetch.go@79:12:79:14
+    - go/cmd/dolt/commands/pull.go@111:12:111:14
+  fppaths: [] # no false positive paths
+- repo: rclone/rclone
+  checkout: 28c187b
+  thpaths:
+    - backend/ftp/ftp.go@885:2:885:2
+    - backend/oracleobjectstorage/waiter.go@63:2:63:13
+    - backend/oracleobjectstorage/waiter.go@64:2:64:17
+    - backend/oracleobjectstorage/waiter.go@87:2:87:7
+    - cmd/serve/sftp/connection.go@254:21:254:23
+  fppaths: [] # no false positive paths
