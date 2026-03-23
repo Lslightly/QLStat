@@ -50,10 +50,11 @@ You can also use [demo.sh](../../demo.sh) as your first try.
 
 The following performance improvements are detected by [`escape_ext/heapvar_should_move.ql`](../../qlsrc/escape_ext/heapvar_should_move.ql).
 
-| Repository                                                    | Problematic Commit | Pull Request                               |
+| Repository                                                    | Problematic Commit | Pull Request/Issue                         |
 | ------------------------------------------------------------- | ------------------ | ------------------------------------------ |
 | [rclone/rclone](https://github.com/rclone/rclone/tree/master) | 73bcae224          | https://github.com/rclone/rclone/pull/9079 |
 | [junegunn/fzf](https://github.com/junegunn/fzf)               | 416aff             | https://github.com/junegunn/fzf/issues/4735 |
+| [cli/cli](https://github.com/cli/cli)                         | 8723e3b            | https://github.com/cli/cli/issues/13001    |
 
 ## HeapVar Should Move
 
@@ -63,6 +64,10 @@ dolt
 
 protoactor-go
 [`plan`](https://github.com/asynkron/protoactor-go/blob/1d6aa320fbac4692a3cbe08f391e4c6632229a1a/cluster/clusterproviders/consul/provider_actor.go#L88)
+
+cli
+[`editable`](https://github.com/cli/cli/blob/8723e3bb5270af646fe7535b21e4db337a5bd73e/pkg/cmd/issue/edit/edit.go#L270)
+[`err`](https://github.com/cli/cli/blob/8723e3bb5270af646fe7535b21e4db337a5bd73e/internal/codespaces/portforwarder/port_forwarder.go#L279)
 
 ## Repositories scanned
 
