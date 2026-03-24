@@ -74,3 +74,9 @@ predicate inDeferStmt(AstNode node) {
 predicate inGoStmt(AstNode node) {
     exists(GoStmt gostmt | gostmt = node.getParent*())
 }
+
+class AppendExpr extends CallExpr {
+    AppendExpr() {
+        this.getCalleeName() = "append"
+    }
+}

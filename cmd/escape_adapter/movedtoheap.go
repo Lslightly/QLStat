@@ -29,19 +29,19 @@ func cleanpath(path string) string {
 	return filepath.Clean(filepath.Join(absSrcRoot, path))
 }
 
-type MovedToHeapRow struct {
+type CSVRow struct {
 	path                string
 	startLine, startCol int
 }
 
-func (row *MovedToHeapRow) String() string {
+func (row *CSVRow) String() string {
 	const pat string = "%s,%d,%d"
 	return fmt.Sprintf(pat, row.path, row.startLine, row.startCol)
 }
 
 // path, startLine, startCol
 func movedToHeapHandle(lineGen LineGenerator) (csvRows []string) {
-	rowSet := make(map[MovedToHeapRow]bool)
+	rowSet := make(map[CSVRow]bool)
 	for i, line := range lineGen {
 		if !strings.Contains(line, "moved to heap") {
 			continue
@@ -53,7 +53,41 @@ func movedToHeapHandle(lineGen LineGenerator) (csvRows []string) {
 			continue
 		}
 		path, startLineStr, startColStr := matches[1], matches[2], matches[3]
-		row := MovedToHeapRow{
+		row := CSVRow{
+			path:      cleanpath(path),
+			startLine: convint(startLineStr),
+			startCol:  convint(startColStr),
+		}
+		if rowSet[row] {
+			continue
+		}
+		rowSet[row] = true
+	}
+	csvRows = make([]string, 0, len(rowSet))
+	for row := range rowSet {
+		csvRows = append(csvRows, row.String())
+	}
+	return
+}
+
+func newEscapesToHeapHandle(lineGen LineGenerator) (csvRows []string) {
+	rowSet := make(map[CSVRow]bool)
+	for i, line := range lineGen {
+		if !(strings.Contains(line, "new") && strings.Contains(line, "escapes to heap")) { // does not contain (new && escapes to heap)
+			continue
+		}
+		regex := regexp.MustCompile(`(.*?):(\d+):(\d+):`)
+		matches := regex.FindStringSubmatch(line)
+		if len(matches) == 0 {
+			log.Printf("line %d with moved to heap but no match\n", i+1)
+			continue
+		}
+		if len(regexp.MustCompile(`new\(.*\) escapes to heap`).FindStringSubmatch(line)) == 0 { // does not match new(.*?) escapes to heap
+			log.Printf("line %d does not match new\\(.*?\\) escapes to heap", i+1)
+			continue
+		}
+		path, startLineStr, startColStr := matches[1], matches[2], matches[3]
+		row := CSVRow{
 			path:      cleanpath(path),
 			startLine: convint(startLineStr),
 			startCol:  convint(startColStr),

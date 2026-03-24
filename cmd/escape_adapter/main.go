@@ -18,13 +18,15 @@ var (
 )
 
 type Options struct {
-	movedToHeap bool
+	movedToHeap      bool
+	newEscapesToHeap bool
 }
 
 func init() {
 	flag.StringVar(&OutDir, "dir", "./", "(required) directory to store output csv")
 	flag.StringVar(&SrcRoot, "src", "./", "(required) source root directory. Paths will be adjusted to absolute path according to source root directory")
 	flag.BoolVar(&Opts.movedToHeap, "movedToHeap", false, "enable \"moved to heap\" dump")
+	flag.BoolVar(&Opts.newEscapesToHeap, "newEscapesToHeap", false, "enable \"new(...) escapes to heap\" dump")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "Escape Analysis Adapter\nUsage: go run cmd/escape_adapter [options...] <escape analysis log>")
 		flag.PrintDefaults()
@@ -64,6 +66,13 @@ func main() {
 			outfile := utils.CreateFile(filepath.Join(OutDir, "movedToHeap.csv"))
 			defer outfile.Close()
 			fmt.Fprint(outfile, strings.Join(movedToHeapHandle(createLineGen(logpath)), "\n"))
+		}()
+	}
+	if Opts.newEscapesToHeap {
+		func() {
+			outfile := utils.CreateFile(filepath.Join(OutDir, "newEscapesToHeap.csv"))
+			defer outfile.Close()
+			fmt.Fprint(outfile, strings.Join(newEscapesToHeapHandle(createLineGen(logpath)), "\n"))
 		}()
 	}
 }
