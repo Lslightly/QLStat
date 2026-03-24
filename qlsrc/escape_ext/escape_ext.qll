@@ -20,3 +20,15 @@ class InlinedMovedToHeapVar extends CallExpr {
         )
     }
 }
+
+// CallExpr new()'s startCol is "n", while escape analysis's output startCol is "("
+predicate locNewEscapesToHeap(Location loc) {
+    newEscapesToHeap(loc.getFile().getAbsolutePath(), loc.getStartLine(), loc.getStartColumn()+3)
+}
+
+class NewExprEscapesToHeap extends CallExpr {
+    NewExprEscapesToHeap() {
+        this.getCalleeName() = "new"
+        and locNewEscapesToHeap(this.getLocation())
+    }
+}

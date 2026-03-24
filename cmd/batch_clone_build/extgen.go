@@ -80,6 +80,7 @@ func adaptEscape(cfg *config.Artifact, repo config.Repo) {
 		"-src",
 		repo.DirPath(cfg.RepoRoot),
 		"-movedToHeap",
+		"-newEscapesToHeap",
 		escapeLogPath(cfg, repo),
 	)
 	cmd.Stdout, cmd.Stderr = outFile, errFile
