@@ -53,7 +53,7 @@ The following performance improvements are detected by [`escape_ext/heapvar_shou
 | Repository                                                    | Problematic Commit | Pull Request/Issue                         |
 | ------------------------------------------------------------- | ------------------ | ------------------------------------------ |
 | [rclone/rclone](https://github.com/rclone/rclone/tree/master) | 73bcae224          | https://github.com/rclone/rclone/pull/9079 |
-| [junegunn/fzf](https://github.com/junegunn/fzf)               | 416aff             | https://github.com/junegunn/fzf/issues/4735 |
+| [junegunn/fzf](https://github.com/junegunn/fzf)               | 416aff             | https://github.com/junegunn/fzf/pull/4739  |
 | [cli/cli](https://github.com/cli/cli)                         | 8723e3b            | https://github.com/cli/cli/issues/13001    |
 
 ## HeapVar Should Move

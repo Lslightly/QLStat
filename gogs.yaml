@@ -1,0 +1,39 @@
+logRoot: logs
+repoRoot: repos # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+
+# clone
+sources:
+  - prefix: https://github.com/ # clone url prefix
+    fullnames:
+      - gogs/gogs v0.14.2
+
+# build database
+# buildCmd will be executed in the root directory of repositories.
+# "default" buildCmd lets codeql figure out the build command.
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildGrps:
+  - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+    - "-"
+    buildCmd: default
+
+# generate external predicates predicate
+# For repositories in each group, same genScript will be applied in the root directory of repositories
+# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
+externalGenGrps:
+  - genRepos:
+      - "-"
+    genScript: goescape
+
+# query
+queryconfig:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  parallelCore: 20 # parallel cores to run query
+  queryGrps:
+    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
+        - "-"
+      queries: # queries
+        - escape_ext/heapvar_should_move.ql
+      externals: [movedToHeap, newEscapesToHeap] # names for external predicates. For each predicate $pred, the external database(csv file) is stored in $dbRoot/path/to/repo/ext/$pred.csv. Currently only "movedToHeap" is supported.
