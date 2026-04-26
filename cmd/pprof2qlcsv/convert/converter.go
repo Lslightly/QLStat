@@ -160,6 +160,7 @@ func (r *labelRegistry) register(stb *stringTableBuilder, key, str string, num i
 type ProfileData struct {
 	profile     [][]string // profile 单例表
 	valueType   [][]string // value_type 实体表
+	sample      [][]string // sample 实体表
 	sample2loc  [][]string // sample_to_location_id 索引表
 	sample2val  [][]string // sample_to_value 索引表
 	sample2lbl  [][]string // sample_to_label 索引表
@@ -304,6 +305,7 @@ func Convert(p *profile.Profile) *ProfileData {
 	// Sample：proto 中无显式 id，使用数组索引作为 sample_id
 	for i, s := range p.Sample {
 		sampleID := i
+		d.sample = append(d.sample, []string{strconv.Itoa(sampleID)})
 
 		// sample_to_location_id：展开 Sample.Location 数组
 		for j, loc := range s.Location {
@@ -382,6 +384,8 @@ func (d *ProfileData) PredicateRows(name string) [][]string {
 		return d.profile
 	case "value_type":
 		return d.valueType
+	case "sample":
+		return d.sample
 	case "sample_to_location_id":
 		return d.sample2loc
 	case "sample_to_value":
@@ -433,6 +437,7 @@ func (d *ProfileData) PredicateNames() []string {
 		"line",
 		"function",
 		"label",
+		"sample",
 		"sample_to_location_id",
 		"sample_to_value",
 		"sample_to_label",

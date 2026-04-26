@@ -5,6 +5,7 @@ package convert
 var predicateSchemas = map[string][]string{
 	"profile":                 {"id", "drop_frames", "keep_frames", "time_nanos", "duration_nanos", "period_type", "period", "default_sample_type", "doc_url"},
 	"value_type":              {"id", "type", "unit"},
+	"sample":                  {"id"},
 	"sample_to_location_id":   {"sample_id", "index", "location_id"},
 	"sample_to_value":         {"sample_id", "index", "value"},
 	"sample_to_label":         {"sample_id", "index", "label_id"},

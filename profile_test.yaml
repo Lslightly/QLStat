@@ -46,10 +46,11 @@ queryconfig:
     - queryRepos:
         - malloc_test
       queries:
-        - pprof_ext/external_verify/mapping_test.ql
+        - pprof_ext/external_verify/instance_cnt_test.ql
       externals:
         - profile
         - value_type
+        - sample
         - sample_to_location_id
         - sample_to_value
         - sample_to_label
@@ -67,4 +68,3 @@ queryconfig:
         - profile_to_function
         - profile_to_string_table
         - profile_to_comment
-

@@ -144,7 +144,7 @@ class ValueType extends int {
  * Note: Sample id corresponds to its index in Profile.sample array.
  */
 class Sample extends int {
-    Sample() { exists(int index | profile_to_sample(index, this)) }
+    Sample() { sample(this) }
 
     /**
      * The ids recorded here correspond to a Profile.location.id.

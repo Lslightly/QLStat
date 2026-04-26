@@ -12,6 +12,7 @@ external predicate profile(int id, int drop_frames, int keep_frames, int time_na
 external predicate value_type(int id, int type, int unit);
 
 // Sample
+external predicate sample(int id);
 external predicate sample_to_location_id(int sample_id, int index, int location_id);
 external predicate sample_to_value(int sample_id, int index, int value);
 external predicate sample_to_label(int sample_id, int index, int label_id);
