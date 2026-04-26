@@ -49,7 +49,6 @@ queryconfig:
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   queryGrps:
     - queryRepos:
-        - malloc_test
         - batchmalloc
       queries:
         - escape_ext/new_expr_escapes_to_heap_test.ql
@@ -57,4 +56,28 @@ queryconfig:
       externals:
         - movedToHeap
         - newEscapesToHeap
+    - queryRepos:
+        - malloc_test
+      queries:
+        - pprof_ext/malloc_time.ql
+      externals:
+        - profile
+        - value_type
+        - sample_to_location_id
+        - sample_to_value
+        - sample_to_label
+        - label
+        - mapping
+        - location
+        - location_to_line
+        - line
+        - function
+        - string_table
+        - profile_to_sample_type
+        - profile_to_sample
+        - profile_to_mapping
+        - profile_to_location
+        - profile_to_function
+        - profile_to_string_table
+        - profile_to_comment
 

@@ -4,8 +4,10 @@ go 1.24.2
 
 require (
 	github.com/goccy/go-yaml v1.18.0
+	github.com/google/pprof v0.0.0-20260402051712-545e8a4df936
 	github.com/otiai10/copy v1.14.1
 	github.com/schollz/progressbar/v3 v3.18.0
+	github.com/stretchr/testify v1.11.1
 	gorm.io/gorm v1.31.1
 )
 
@@ -17,9 +19,8 @@ require (
 	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/stretchr/testify v1.11.1 // indirect
 	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
 	golang.org/x/term v0.28.0 // indirect
 	golang.org/x/text v0.20.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
