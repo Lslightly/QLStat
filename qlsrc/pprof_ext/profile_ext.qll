@@ -20,10 +20,10 @@ external predicate sample_to_label(int sample_id, int index, int label_id);
 external predicate label(int id, int key, int str, int num, int num_unit);
 
 // Mapping
-external predicate mapping(int id, int memory_start, int memory_limit, int file_offset, int filename, int build_id, boolean has_functions, boolean has_filenames, boolean has_line_numbers, boolean has_inline_frames);
+external predicate mapping(int id, QlBuiltins::BigInt memory_start, QlBuiltins::BigInt memory_limit, QlBuiltins::BigInt file_offset, int filename, int build_id, boolean has_functions, boolean has_filenames, boolean has_line_numbers, boolean has_inline_frames);
 
 // Location
-external predicate location(int id, int mapping_id, int address, boolean is_folded);
+external predicate location(int id, int mapping_id, QlBuiltins::BigInt address, boolean is_folded);
 external predicate location_to_line(int location_id, int index, int line_id);
 
 // Line

@@ -219,9 +219,9 @@ class Label extends int {
 }
 
 class Mapping extends int {
-    int memory_start;
-    int memory_limit;
-    int file_offset;
+    QlBuiltins::BigInt memory_start;
+    QlBuiltins::BigInt memory_limit;
+    QlBuiltins::BigInt file_offset;
     int filename;
     int build_id;
     boolean has_functions;
@@ -259,13 +259,13 @@ class Mapping extends int {
     string getBuildId() { result = findStr(build_id) }
 
     /** Start of memory mapped by this mapping. */
-    int getMemoryStart() { result = memory_start }
+    QlBuiltins::BigInt getMemoryStart() { result = memory_start }
 
     /** End of memory mapped by this mapping (exclusive). */
-    int getMemoryLimit() { result = memory_limit }
+    QlBuiltins::BigInt getMemoryLimit() { result = memory_limit }
 
     /** Offset in the binary file corresponding to memory_start. */
-    int getFileOffset() { result = file_offset }
+    QlBuiltins::BigInt getFileOffset() { result = file_offset }
 
     /** Whether this mapping contains function information. */
     boolean hasFunctions() { result = has_functions }
@@ -288,7 +288,7 @@ class Mapping extends int {
  */
 class Location extends int {
     Mapping mapping_id;
-    int address;
+    QlBuiltins::BigInt address;
     boolean is_folded;
     Location() { location(this, mapping_id, address, is_folded) }
 
@@ -311,7 +311,7 @@ class Location extends int {
     Mapping getMapping() { result = mapping_id }
 
     /** Returns the address of this location. */
-    int getAddress() { result = address }
+    QlBuiltins::BigInt getAddress() { result = address }
 
     /** Returns whether this location is folded. */
     boolean isFolded() { result = is_folded }
