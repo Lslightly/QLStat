@@ -164,7 +164,7 @@ class ValueType extends int {
  */
 class Sample extends int {
     Sample() {
-        sample_to_location_id(this, _, _)
+        exists(int index | profile_to_sample(index, this))
     }
 
     /**
@@ -349,6 +349,7 @@ class Line extends int {
     Line() {
         line(this, function_id, line_number, column)
     }
+    Function getFunction() { result = function_id }
 }
 
 class Function extends int {
