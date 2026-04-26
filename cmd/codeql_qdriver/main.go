@@ -45,6 +45,7 @@ func init() {
 	flag.BoolVar(&doCollect, "collect", false, "collect all csv results in one csv. The option takes effect only when format is csv.")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "run queries in parallel\nUsage: go run cmd/codeql_qdriver [options] <config file>")
+		flag.PrintDefaults()
 	}
 }
 
