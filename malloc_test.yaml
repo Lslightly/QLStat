@@ -63,6 +63,7 @@ queryconfig:
       externals:
         - profile
         - value_type
+        - sample
         - sample_to_location_id
         - sample_to_value
         - sample_to_label

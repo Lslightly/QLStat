@@ -18,10 +18,10 @@ import profile_ext
 class Profile extends int {
     int drop_frames;
     int keep_frames;
-    int time_nanos;
-    int duration_nanos;
+    QlBuiltins::BigInt time_nanos;
+    QlBuiltins::BigInt duration_nanos;
     ValueType period_type;
-    int period;
+    QlBuiltins::BigInt period;
     int default_sample_type;
     int doc_url;
     Profile() {
@@ -104,16 +104,16 @@ class Profile extends int {
     string getDocUrl() { result = findStr(doc_url) }
 
     /** The time the profile was recorded, in nanoseconds since epoch. */
-    int getTimeNanos() { result = time_nanos }
+    QlBuiltins::BigInt getTimeNanos() { result = time_nanos }
 
     /** The duration of the profile in nanoseconds. */
-    int getDurationNanos() { result = duration_nanos }
+    QlBuiltins::BigInt getDurationNanos() { result = duration_nanos }
 
     /** The type of the period (e.g., cpu cycles, instructions, etc.). */
     ValueType getPeriodType() { result = period_type }
 
     /** The period at which samples were taken. */
-    int getPeriod() { result = period }
+    QlBuiltins::BigInt getPeriod() { result = period }
 }
 
 /** ValueType describes the semantics and measurement units of a value. */
@@ -167,7 +167,7 @@ class Sample extends int {
      * E.g. if sample_type = [["allocations","count"], ["space","bytes"]],
      * then getValue(0) = allocation count, getValue(1) = total bytes.
      */
-    int getValue(int index) { sample_to_value(this, index, result) }
+    QlBuiltins::BigInt getValue(int index) { sample_to_value(this, index, result) }
 
     /**
      * Label includes additional context for this sample. It can include

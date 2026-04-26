@@ -6,7 +6,7 @@ external predicate profile_to_location(int index, int location_id);
 external predicate profile_to_function(int index, int function_id);
 external predicate profile_to_string_table(int index, int string_table_id);
 external predicate profile_to_comment(int index, int comment_id);
-external predicate profile(int id, int drop_frames, int keep_frames, int time_nanos, int duration_nanos, int period_type, int period, int default_sample_type, int doc_url);
+external predicate profile(int id, int drop_frames, int keep_frames, QlBuiltins::BigInt time_nanos, QlBuiltins::BigInt duration_nanos, int period_type, QlBuiltins::BigInt period, int default_sample_type, int doc_url);
 
 // ValueType
 external predicate value_type(int id, int type, int unit);
@@ -14,7 +14,7 @@ external predicate value_type(int id, int type, int unit);
 // Sample
 external predicate sample(int id);
 external predicate sample_to_location_id(int sample_id, int index, int location_id);
-external predicate sample_to_value(int sample_id, int index, int value);
+external predicate sample_to_value(int sample_id, int index, QlBuiltins::BigInt value);
 external predicate sample_to_label(int sample_id, int index, int label_id);
 
 // Label
