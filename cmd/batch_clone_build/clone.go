@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"sync"
 
@@ -12,22 +11,15 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-/*
-batch_clone clone repositories specified by target.yaml in specified root directory.
-
-Notice that org/repo_name repository is cloned in root/repo_name directory.
-
-If some repositories have same base name, it will automatically rename the repository with suffix and create a conflict map in conflict.txt next to target.yaml
-*/
-
-func clone(url, dir string) error {
-	cmd := exec.Command("git", "clone", url, dir)
-	return cmd.Run()
-}
-
 func dirSetup(cfg *config.Artifact) {
-	utils.MkdirAll(cfg.RepoRoot)
-	utils.MkdirAll(cfg.DBRoot)
+	for _, dir := range []string{
+		cfg.RepoRoot,
+		cfg.LogRoot,
+		cfg.DBRoot,
+		cfg.ResultRoot,
+	} {
+		utils.MkdirAll(dir)
+	}
 }
 
 func batchClone(cfg *config.Artifact) {
