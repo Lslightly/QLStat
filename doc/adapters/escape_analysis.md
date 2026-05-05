@@ -40,6 +40,7 @@ queryconfig:
 In this configuration:
 - `genScript: goescape` instructs the system to compile repositories with escape analysis enabled
 - `externals: [movedToHeap]` makes the escape analysis data available to the specified queries. The external data table is located in `$dbRoot/<path/to/repo>/ext/movedToHeap.csv`.
+  - Convinient Option: `externalFiles: [yaml-template/escape.yaml]` specifies the YAML file that defines the escape analysis predicates. It will be automatically loaded and added to `externals`.
 - The query [`escape_ext/moved_to_heap_var_test.ql`](../../qlsrc/escape_ext/moved_to_heap_var_test.ql) can then use the `movedToHeap` predicate to identify variables that escape to the heap
 
 This enables queries that answer questions like "Which functions have parameters that always escape to the heap?" or "What patterns correlate with heap allocation in goroutines?"

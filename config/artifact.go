@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/Lslightly/qlstat/utils"
+	"github.com/goccy/go-yaml"
 )
 
 type Artifact struct {
@@ -33,9 +34,21 @@ type BuildGroup struct {
 }
 
 type QueryGroup struct {
-	QueryRepos []string `yaml:"queryRepos"`
-	Queries    []string `yaml:"queries"`
-	Externals  []string `yaml:"externals"`
+	QueryRepos    []string `yaml:"queryRepos"`
+	Queries       []string `yaml:"queries"`
+	Externals     []string `yaml:"externals"`
+	ExternalFiles []string `yaml:"externalFiles"`
+}
+
+// ReadExternalFiles reads filename and returns a slice of non-empty external predicates' names defined in the file
+func ReadExternalFiles(filename string) (externals []string, err error) {
+	var exts []string
+	bs, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	yaml.Unmarshal(bs, &exts)
+	return exts, nil
 }
 
 type ExternalGenGroup struct {

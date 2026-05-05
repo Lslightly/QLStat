@@ -45,6 +45,7 @@ func init() {
 	flag.BoolVar(&doCollect, "collect", false, "collect all csv results in one csv. The option takes effect only when format is csv.")
 	flag.Usage = func() {
 		fmt.Fprintln(os.Stderr, "run queries in parallel\nUsage: go run cmd/codeql_qdriver [options] <config file>")
+		flag.PrintDefaults()
 	}
 }
 
@@ -81,6 +82,19 @@ func parseConfig() {
 	err = yaml.Unmarshal(bs, &cfg)
 	if err != nil {
 		log.Fatalln("error occurs when parsing json", err)
+	}
+	for i := range cfg.QueryGrps {
+		grp := &cfg.QueryGrps[i]
+		if len(grp.ExternalFiles) == 0 {
+			continue
+		}
+		for _, extf := range grp.ExternalFiles {
+			exts, err := config.ReadExternalFiles(extf)
+			if err != nil {
+				log.Fatalln("error occurs when reading external file", extf, err)
+			}
+			grp.Externals = append(grp.Externals, exts...)
+		}
 	}
 }
 
