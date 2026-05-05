@@ -83,6 +83,19 @@ func parseConfig() {
 	if err != nil {
 		log.Fatalln("error occurs when parsing json", err)
 	}
+	for i := range cfg.QueryGrps {
+		grp := &cfg.QueryGrps[i]
+		if len(grp.ExternalFiles) == 0 {
+			continue
+		}
+		for _, extf := range grp.ExternalFiles {
+			exts, err := config.ReadExternalFiles(extf)
+			if err != nil {
+				log.Fatalln("error occurs when reading external file", extf, err)
+			}
+			grp.Externals = append(grp.Externals, exts...)
+		}
+	}
 }
 
 type ErrorPair struct {
