@@ -23,7 +23,7 @@ QLStat provides a comprehensive framework for large-scale empirical analysis of 
 
 ### 1. Configuration
 
-Create your `stat.yaml` config file according to [`example.yaml`](./example.yaml). The configuration supports several key sections:
+Create your `stat.yaml` config file according to [`example.yaml`](./example.yaml) or YAML files in [`yaml-examples/`](./yaml-examples/). The configuration supports several key sections:
 
 - `sources`: Define repository sources with prefixes and specific repositories
 - `language`: Specify the programming language for analysis (e.g., go)
