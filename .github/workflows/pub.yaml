@@ -1,0 +1,19 @@
+name: Publish CodeQL package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  pub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: github/codeql-action/setup-codeql@v4
+      - name: Publish CodeQL Package
+        run: ./pub.sh
+        working-directory: ${{ github.workspace }}/qlsrc
+
+
