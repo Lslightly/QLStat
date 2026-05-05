@@ -18,6 +18,9 @@ func dirSetup(cfg *config.Artifact) {
 		cfg.DBRoot,
 		cfg.ResultRoot,
 	} {
+		if dir == "" {
+			continue
+		}
 		utils.MkdirAll(dir)
 	}
 }

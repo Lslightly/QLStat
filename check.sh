@@ -5,7 +5,7 @@ function splitline {
 }
 
 echo "Batch Clone Build Test"
-if ! go test ./cmd/batch_clone_build; then
+if ! go test -v ./cmd/batch_clone_build; then
     echo "Batch Clone Build Test Failed"
     exit 1
 fi
@@ -13,7 +13,7 @@ fi
 splitline
 
 echo "Escape Adapter Test"
-if ! go test ./cmd/escape_adapter; then
+if ! go test -v ./cmd/escape_adapter; then
     echo "Escape Adapter Test Failed"
     exit 1
 fi
