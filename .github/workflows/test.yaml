@@ -15,7 +15,18 @@ jobs:
         with:
           go-version: 1.24
       - name: Setup CodeQL
+        id: codeqlsetup
         uses: github/codeql-action/setup-codeql@v4
+      - name: Add CodeQL to PATH # see https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#adding-a-system-path
+        run: |
+          # 1. get the full path of CodeQL
+          FULL_PATH="${{ steps.codeqlsetup.outputs.codeql-path }}"
+          # 2. use dirname to get the directory of CodeQL binary
+          CODEQL_DIR=$(dirname "$FULL_PATH")
+          # 3. add CodeQL directory to GITHUB_PATH
+          echo "$CODEQL_DIR" >> $GITHUB_PATH
+          # print the CodeQL directory to confirm
+          echo "Adding $CODEQL_DIR to PATH"
       - name: Test
         run: |
           ./check.sh
