@@ -39,8 +39,10 @@ buildGrps:
 externalGenGrps:
   - genRepos:
       - malloc_test
+    genScript: yaml-examples/extgens/malloc_test.sh
+  - genRepos:
       - batchmalloc
-    genScript: ./extgen.sh
+    genScript: yaml-examples/extgens/batchmalloc.sh
 
 # query
 queryconfig:
