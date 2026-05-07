@@ -19,11 +19,17 @@ QLStat provides a comprehensive framework for large-scale empirical analysis of 
 - Install [CodeQL CLI](https://docs.github.com/en/code-security/how-tos/scan-code-for-vulnerabilities/scan-from-the-command-line/setting-up-the-codeql-cli#1-download-the-codeql-cli-tar-archive) and add codeql to your PATH.
 - Install [Go](https://go.dev/dl/).
 
+## Demo
+
+- [`demo.sh`](./demo.sh): A demo script to run QLStat on a sample configuration file.
+  - Results are in `./codeqlResult/escape_ext/heapvar_should_move`. You will find optimization variables allocated in heap.
+- [`demo.yaml`](./demo.yaml): The sample configuration file demonstrating the usage of QLStat.
+
 ## Usage
 
 ### 1. Configuration
 
-Create your `stat.yaml` config file according to [`example.yaml`](./example.yaml) or YAML files in [`yaml-examples/`](./yaml-examples/). The configuration supports several key sections:
+Create your `stat.yaml` config file according to [`example.yaml`](./example.yaml), [`demo.yaml`](./demo.yaml) or YAML files in [`yaml-examples/`](./yaml-examples/). The configuration supports several key sections:
 
 - `sources`: Define repository sources with prefixes and specific repositories
 - `language`: Specify the programming language for analysis (e.g., go)

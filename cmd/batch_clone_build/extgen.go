@@ -97,26 +97,6 @@ func abspath(path string) string {
 	return p
 }
 
-/*
-genScriptEnv generate environment variables for the script
-
-	REPO_DIR is the root directory of the repository
-
-	OUTPUT_DIR is the directory to store intermediate results for generating external predicate
-
-	PROJROOT is the root directory of the project
-
-	DB_EXT_DIR is the directory to store external predicate database
-*/
-func genScriptEnv(cfg *config.Artifact, repo config.Repo) []string {
-	return []string{
-		"REPO_DIR=" + abspath(repo.DirPath(cfg.RepoRoot)),
-		"OUTPUT_DIR=" + abspath(repo.DirPath(extgenLogDir(cfg))),
-		"PROJROOT=" + abspath(utils.ProjectRoot()),
-		"DB_EXT_DIR=" + abspath(repo.DBExtDir(cfg.DBRoot)),
-	}
-}
-
 func genscript(cfg *config.Artifact, repo config.Repo, script string) {
 	outFile, errFile := utils.CreateOutAndErr(filepath.Join(repo.DirPath(extgenLogDir(cfg)), "runscript"))
 	defer outFile.Close()
@@ -128,7 +108,13 @@ func genscript(cfg *config.Artifact, repo config.Repo, script string) {
 	} else {
 		cmd = exec.Command(elems[0], elems[1:]...)
 	}
-	cmd.Env = append(os.Environ(), genScriptEnv(cfg, repo)...)
+
+	cmd.Env = append(os.Environ(), genEnv([]envpair{
+		{REPO_DIR, abspath(repo.DirPath(cfg.RepoRoot))},
+		{OUTPUT_DIR, abspath(repo.DirPath(extgenLogDir(cfg)))},
+		{PROJROOT, abspath(utils.ProjectRoot())},
+		{DB_EXT_DIR, abspath(repo.DBExtDir(cfg.DBRoot))},
+	})...)
 	cmd.Stdout, cmd.Stderr = outFile, errFile
 	fmt.Printf("cwd: %s, out: %s, err: %s, cmd: %s\n", cmd.Dir, outFile.Name(), errFile.Name(), cmd.String())
 	_ = cmd.Run()
