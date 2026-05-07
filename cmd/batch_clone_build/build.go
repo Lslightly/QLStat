@@ -165,9 +165,24 @@ func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult, 
 		"database", "create", dbPath, "-l=" + cfg.Lang, "--overwrite", "-s=" + repo.DirPath(cfg.RepoRoot),
 	}
 	if buildcommand != "default" {
-		args = append(args, "-c", buildcommand)
+		if _, err := os.Stat(buildcommand); err != nil {
+			// buildcommand does not exist
+			args = append(args, "-c", buildcommand)
+		} else {
+			// buildcommand script exists. Change to absolute path
+			buildcommand, err = filepath.Abs(buildcommand)
+			if err != nil {
+				log.Fatalf("Failed to get absolute path for buildcommand: %v", err)
+			}
+			args = append(args, "-c", buildcommand)
+		}
 	}
 	cmd := exec.CommandContext(ctx, "codeql", args...)
+	cmd.Env = append(os.Environ(),
+		genEnv([]envpair{
+			{REPO_DIR, abspath(repo.DirPath(cfg.RepoRoot))},
+			{PROJROOT, abspath(utils.ProjectRoot())},
+		})...)
 	cmd.Stdout = outFile
 	cmd.Stderr = errFile
 

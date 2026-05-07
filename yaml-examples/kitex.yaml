@@ -14,7 +14,7 @@ buildTimeout: 3600 # timeout for building repository
 buildGrps:
 - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
     - "-"
-  buildCmd: ./build.sh
+  buildCmd: yaml-examples/build/kitex-examples.sh
 
 # generate external predicates predicate
 # For repositories in each group, same genScript will be applied in the root directory of repositories
