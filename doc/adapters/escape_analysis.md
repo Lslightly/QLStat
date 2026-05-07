@@ -39,6 +39,11 @@ queryconfig:
 
 In this configuration:
 - `genScript: goescape` instructs the system to compile repositories with escape analysis enabled
+  - Note that if you use custom script, 4 environment variables will be set. You can use them in your custom script.
+    - `REPO_DIR`: The directory path of the repository
+    - `OUTPUT_DIR`: The directory path of the output log file
+    - `PROJROOT`: The project root directory
+    - `DB_EXT_DIR`: The directory to store external predicate database
 - `externals: [movedToHeap]` makes the escape analysis data available to the specified queries. The external data table is located in `$dbRoot/<path/to/repo>/ext/movedToHeap.csv`.
   - Convinient Option: `externalFiles: [yaml-template/escape.yaml]` specifies the YAML file that defines the escape analysis predicates. It will be automatically loaded and added to `externals`.
 - The query [`escape_ext/moved_to_heap_var_test.ql`](../../qlsrc/escape_ext/moved_to_heap_var_test.ql) can then use the `movedToHeap` predicate to identify variables that escape to the heap

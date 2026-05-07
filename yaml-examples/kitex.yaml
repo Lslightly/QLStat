@@ -22,7 +22,7 @@ buildGrps:
 externalGenGrps:
   - genRepos:
       - "-"
-    genScript: ./extgen.sh
+    genScript: yaml-examples/extgens/kitex-examples.sh
 
 # query
 queryconfig:

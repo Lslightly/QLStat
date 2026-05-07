@@ -28,7 +28,7 @@ Create your `stat.yaml` config file according to [`example.yaml`](./example.yaml
 - `sources`: Define repository sources with prefixes and specific repositories
 - `language`: Specify the programming language for analysis (e.g., go)
 - `buildGrps`: Configure build groups with timeout and build commands
-- `externalGenGrps`: Generate external predicates (like escape analysis data)
+- `externalGenGrps`: Generate external predicates (like escape analysis, profiling data)
 - `queryconfig`: Set up query execution with parallelization options
 - `queryGrps`: Define query groups with specific queries and target repositories
 
@@ -82,7 +82,7 @@ QLStat supports extending CodeQL with escape analysis data through the escape ad
    1. `goescape` is actually the command `go build -a -gcflags=all=-m=2 .`
    2. You can also specify your own script with only one constraint: Generate `m2.log` in `$logRoot/extgen/path/to/repo/m2.log`
 2. This generates escape analysis data during the build phase
-3. Reference the external predicate in your query group with `externals: - movedToHeap`
+3. Reference the external predicate in your query group with `externals: [movedToHeap, newEscapesToHeap]`
 4. Use the external predicate in your CodeQL queries
 
 For more details about how the escape analysis extension works, see [Escape Analysis Documentation](doc/adapters/escape_analysis.md).

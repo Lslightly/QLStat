@@ -23,7 +23,7 @@ buildGrps:
 externalGenGrps:
   - genRepos:
       - dolthub/dolt
-    genScript: ./extgen.sh
+    genScript: yaml-examples/extgens/dolt.sh
 
 # query
 queryconfig:

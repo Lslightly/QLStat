@@ -26,6 +26,7 @@ func (r *Repo) RemoteURL() string {
 	return url
 }
 
+// DirPath returns root/<host>/<repo>
 func (r *Repo) DirPath(root string) string {
 	return filepath.Join(r.GitSource.HostDir(root), r.DirBaseName)
 }

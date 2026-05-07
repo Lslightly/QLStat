@@ -32,6 +32,11 @@ buildGrps:
 # generate external predicates predicate
 # For repositories in each group, same genScript will be applied in the root directory of repositories
 # "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
+# If you use custom genScript, then 4 environment variables will be set:
+#   - PROJROOT: the root directory of the project
+#   - REPO_DIR: the root directory of repository
+#   - OUTPUT_DIR: the directory to store intermediate results/log to generate external predicate database
+#   - DB_EXT_DIR: the directory to store external predicate database
 externalGenGrps:
   - genRepos:
       - rclone/rclone
@@ -39,8 +44,10 @@ externalGenGrps:
     genScript: goescape
   - genRepos:
       - Lslightly/dolt
+    genScript: yaml-examples/extgens/dolt.sh
+  - genRepos:
       - Lslightly/kitex-examples
-    genScript: ./extgen.sh
+    genScript: yaml-examples/extgens/kitex-examples.sh
 
 # query
 queryconfig:
