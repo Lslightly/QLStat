@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"time"
@@ -58,18 +59,68 @@ type ExternalGenGroup struct {
 
 var Nowstr string = time.Now().Local().Format("0102-150405")
 
-var logDirMap map[string]string = make(map[string]string)
+var logDirCache map[string]string = make(map[string]string) // pass to logDir cache
 
+// logMetaTy is the metadata of a log directory
+type logMetaTy struct {
+	Pass string `json:"pass"`
+	Now  string `json:"now"`
+}
+
+const logMetaFileName string = "logMeta.json"
+
+func (l *logMetaTy) dump(file string) error {
+	bs, err := json.Marshal(l)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(file, bs, 0644)
+}
+func loadLogMeta(file string) (res logMetaTy, err error) {
+	var bs []byte
+	bs, err = os.ReadFile(file)
+	if err != nil {
+		return
+	}
+	err = json.Unmarshal(bs, &res)
+	return
+}
+
+// PassLogDir returns the log directory for the pass, logRoot/pass/current
 func (art *Artifact) PassLogDir(pass string) string {
-	if dir, ok := logDirMap[pass]; ok {
+	if dir, ok := logDirCache[pass]; ok {
 		return dir
 	}
-	dir := filepath.Join(art.LogRoot, pass, Nowstr)
+	dir := filepath.Join(art.LogRoot, pass, "current")
 	if _, err := os.Stat(dir); err != nil {
 		utils.MkdirAll(dir)
 	}
-	logDirMap[pass] = dir
+	logDirCache[pass] = dir
+	logMeta := logMetaTy{
+		Pass: pass,
+		Now:  Nowstr,
+	}
+	logMeta.dump(filepath.Join(dir, logMetaFileName))
 	return dir
+}
+
+// ArchiveCurrentIfExist archives the current log directory if it exists according to logMeta.json
+func ArchiveCurrentIfExist(art *Artifact, pass string) (exist bool, err error) {
+	srcdir := filepath.Join(art.LogRoot, pass, "current")
+	if _, err = os.Stat(srcdir); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		} else {
+			return true, err
+		}
+	}
+	meta, err := loadLogMeta(filepath.Join(srcdir, logMetaFileName))
+	if err != nil {
+		return true, err
+	}
+	tgtdir := filepath.Join(art.LogRoot, pass, "archive", meta.Now)
+	utils.MkdirAll(filepath.Dir(tgtdir))
+	return true, os.Rename(srcdir, tgtdir)
 }
 
 type reposType int

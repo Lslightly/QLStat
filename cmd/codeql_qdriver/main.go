@@ -61,12 +61,18 @@ func main() {
 		runtime.GOMAXPROCS(cfg.ParallelCore)
 	}
 	if !onlyDecode {
+		if _, err := config.ArchiveCurrentIfExist(&cfg, "query"); err != nil {
+			log.Fatalf("Failed to archive current log dir: %v", err)
+		}
 		for grpi, grp := range cfg.QueryGrps {
 			fmt.Printf("Grp %d: Executing queries\n", grpi)
 			queriesExec(grp)
 		}
 	}
 	fmt.Println("Decoding results")
+	if _, err := config.ArchiveCurrentIfExist(&cfg, "decode"); err != nil {
+		log.Fatalf("Failed to archive current log dir: %v", err)
+	}
 	decodeResults(targetDecodeFmt)
 	if doCollect && targetDecodeFmt == "csv" {
 		fmt.Println("Collecting CSVs")

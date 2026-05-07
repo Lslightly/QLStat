@@ -98,7 +98,11 @@ func buildGrp(cfg *config.Artifact, wg *sync.WaitGroup, resChan chan CreateDBRes
 }
 
 func buildDirSetup(cfg *config.Artifact) (*os.File, *os.File) {
-	logdir := cfg.PassLogDir("build")
+	const passname = "build"
+	if _, err := config.ArchiveCurrentIfExist(cfg, passname); err != nil {
+		log.Fatalf("Failed to archive current log dir: %v", err)
+	}
+	logdir := cfg.PassLogDir(passname)
 	// Create output files
 	csvFilePath := filepath.Join(logdir, "repoTimes.csv")
 	csvFile := utils.CreateFile(csvFilePath)
