@@ -27,6 +27,7 @@ if ! go run ./cmd/pprof-external-verify codeql-db/test/malloc_test/ instance_cou
     exit 1
 fi
 
+go run ./cmd/codeql_qdriver -collect yaml-examples/malloc_test.yaml
 # check mallocgc time is mapped to CodeQL class instances
 MALLOC_CSV="codeqlResult/pprof_ext/malloc_time/malloc_test.csv"
 if [ ! -f "$MALLOC_CSV" ]; then
