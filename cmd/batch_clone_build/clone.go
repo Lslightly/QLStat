@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"sync"
@@ -26,6 +27,11 @@ func dirSetup(cfg *config.Artifact) {
 }
 
 func batchClone(cfg *config.Artifact) {
+	const passname = "clone"
+	if _, err := config.ArchiveCurrentIfExist(cfg, passname); err != nil {
+		log.Fatalf("Failed to archive current log dir: %v", err)
+	}
+	logdir := cfg.PassLogDir(passname)
 	type cloneStatus struct {
 		fullname string
 		err      error // nil means success
@@ -98,7 +104,6 @@ func batchClone(cfg *config.Artifact) {
 	}
 
 	if len(fails) != 0 {
-		logdir := cfg.PassLogDir("clone")
 		failFile := utils.CreateFile(filepath.Join(logdir, "fail.log"))
 		defer failFile.Close()
 
