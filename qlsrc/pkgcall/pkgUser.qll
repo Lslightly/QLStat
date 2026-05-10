@@ -4,7 +4,7 @@
  * package users include call of method and functions defined in package
  */
 import go
-import helper
+import lib.helper
 
 class MethodCallOfPkg extends SelectorExpr {
     MethodCallOfPkg() {

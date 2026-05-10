@@ -2,7 +2,7 @@
  * method call for certain packages
  */
 import go
-import helper
+import lib.helper
 
 from SelectorExpr methodCall
 where isMethodCall(methodCall) and targetOfMCall(methodCall).getPackage().getPath() in ["math/big", "crypto/sha256", "crypto/rsa", "image/jpeg", "encoding/csv"]
