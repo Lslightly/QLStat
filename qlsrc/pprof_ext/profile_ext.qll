@@ -41,3 +41,10 @@ string findStr(int id) {
 }
 
 
+/**
+ * External interface for CPU profile line-level queries.
+ * funcName:   target function name
+ * lineNumber: target line number
+ * comment:    query annotation / note
+ */
+external predicate queryLine(string funcName, int lineNumber, string comment);

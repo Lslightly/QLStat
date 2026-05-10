@@ -210,6 +210,20 @@ class Sample extends int {
      * [profile.proto:133](../../doc/adapters/pprof/profile.proto#L133)
      */
     Label getLabel(int index) { sample_to_label(this, index, result) }
+
+    /**
+     * Holds if the sample's call stack contains a function named `funcName`.
+     */
+    predicate containsFunc(string funcName) {
+        exists(int index | getLocation(index).getLine(_).getFunction().getName() = funcName)
+    }
+
+    /**
+     * Holds if the sample's call stack contains both `funcName` and `lineNumber`.
+     */
+    predicate containsLine(string funcName, int lineNumber) {
+        exists(Line line | getLocation(_).getLine(_) = line and line.getLineNumber() = lineNumber and line.getFunction().getName() = funcName)
+    }
 }
 
 /**

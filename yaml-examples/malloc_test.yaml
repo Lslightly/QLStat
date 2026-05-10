@@ -51,6 +51,9 @@ queryconfig:
         - malloc_test
       queries:
         - pprof_ext/malloc_time.ql
+        - pprof_ext/malloc_line.ql
+      externals:
+        - queryLine
       externalFiles:
         - yaml-template/pprof.yaml
 
