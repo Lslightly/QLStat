@@ -97,6 +97,10 @@ For more details about how the escape analysis extension works, see [Escape Anal
 
 For detailed information about the storage structure and architecture, please refer to the [Architecture Documentation](doc/arch.md).
 
+# Contribution
+
+Contributions are welcome! If you encounter any issues while using QLStat, or have ideas for improvements, feel free to submit an [Issue](https://github.com/Lslightly/QLStat/issues) or open a [Pull Request](https://github.com/Lslightly/QLStat/pulls).
+
 # Citation
 
 ```bibtex
