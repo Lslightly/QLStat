@@ -1,6 +1,6 @@
 # QLStat
 
-Analyze real-world project batch with declarative static analysis provided by CodeQL for empirical study and statistical analysis to gain insight of patterns in real world projects.
+Analyze batches of real-world projects with declarative static analysis provided by CodeQL for empirical study and statistical analysis, gaining insights into patterns in real-world projects.
 
 ## Features Overview
 
@@ -84,12 +84,11 @@ Results are processed in three stages:
 
 QLStat supports extending CodeQL with escape analysis data through the escape adapter:
 
-1. Configure `externalGenGrps` in your YAML with `genScript: goescape`.
-   1. `goescape` is actually the command `go build -a -gcflags=all=-m=2 .`
-   2. You can also specify your own script with only one constraint: Generate `m2.log` in `$logRoot/extgen/path/to/repo/m2.log`
-2. This generates escape analysis data during the build phase
-3. Reference the external predicate in your query group with `externals: [movedToHeap, newEscapesToHeap]`
-4. Use the external predicate in your CodeQL queries
+1. Configure `externalGenGrps` in your YAML with `genScript: goescape` (where `goescape` runs `go build -a -gcflags=all=-m=2 .`).
+   - You can also specify your own script, as long as it generates `m2.log` in `$logRoot/extgen/path/to/repo/m2.log`.
+2. This generates escape analysis data during the build phase.
+3. Reference the external predicate in your query group with `externals: [movedToHeap, newEscapesToHeap]`.
+4. Use the external predicate in your CodeQL queries.
 
 For more details about how the escape analysis extension works, see [Escape Analysis Documentation](doc/adapters/escape_analysis.md).
 
