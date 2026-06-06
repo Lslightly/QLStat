@@ -22,7 +22,7 @@ echo "External Verify Test"
 
 go run ./cmd/batch_clone_build yaml-examples/malloc_test.yaml
 # check number of lines in pprof ext csv file is equal to count of CodeQL class instances
-if ! go run ./cmd/pprof-external-verify codeql-db/test/malloc_test/ instance_count ; then
+if ! go run ./cmd/pprof-external-verify codeql-db/malloc_test/ instance_count ; then
     echo "External Verify Test for malloc_test Failed"
     exit 1
 fi

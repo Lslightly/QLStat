@@ -48,7 +48,7 @@ func (r *Repo) Checkout(root string) error {
 }
 
 func (r *Repo) DBPath(dbroot string) string {
-	return filepath.Join(r.GitSource.HostDir(dbroot), r.DirBaseName)
+	return filepath.Join(dbroot, r.DirBaseName)
 }
 
 func (r *Repo) DBExtDir(dbroot string) string {

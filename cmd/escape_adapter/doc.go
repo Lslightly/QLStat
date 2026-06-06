@@ -4,7 +4,7 @@ package main
 escape analysis adapter
 
 The adapter will adapt the escape analysis -m=2 output to CSV files
-and store these files in $DBRoot/<path/to/repo>/ext/<pred>.csv. Then
+and store these files in $dbRoot/<repo>/ext/<pred>.csv. Then
 these adapted results can be used by `codeql query run --external`
 to extend the ability of CodeQL.
 

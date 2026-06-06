@@ -16,13 +16,10 @@ repos/   # repositories
       repo0/
       ...
 codeql-db/     # database root
-   hostname/
-      repo0/   # repo0 database
-         ext/  # external predicate databases(csv files)
-      ...
-   test/
-   ${lang}_log.txt
-   repoTimes.csv
+   repo0/   # repo0 database
+      ext/  # external predicate databases(csv files)
+   repo1/
+   ...
 codeqlResult/  # root for results of queries
    path/to/
       queryName/  # query result for each repository
@@ -46,3 +43,5 @@ logs/          # logs for different stages
          repo0.out
          repo0.err
 ```
+
+TODO input -- phase --> output pairs
