@@ -11,10 +11,20 @@ type envpair struct {
 	name, value string
 }
 
-// genEnv converts envpairs to strings in the format of "name=value"
+// genEnv converts envpairs to strings in the format of "name=value". This format is required by cmd.Env in exec.Command.
 func genEnv(pairs []envpair) (res []string) {
 	for _, pair := range pairs {
 		res = append(res, pair.name+"="+pair.value)
+	}
+	return res
+}
+
+func allAbs(pairs []envpair) (res []envpair) {
+	for _, pair := range pairs {
+		res = append(res, envpair{
+			name:  pair.name,
+			value: abspath(pair.value),
+		})
 	}
 	return res
 }

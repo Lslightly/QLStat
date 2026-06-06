@@ -116,12 +116,12 @@ type QueryStatus struct {
 
 /*
 first remove all content in ${config.OutResultRoot}/${qScriptNameNoExt}
-dump error log for ${repo} in ${config.OutResultRoot}/${qScriptNameNoExt}/error.log
-dump stdout/stderr for ${repo} in ${config.OutResultRoot}/${qScriptNameNoExt}/log/${repo}.log
+dump error log for ${db} in ${config.OutResultRoot}/${qScriptNameNoExt}/error.log
+dump stdout/stderr for ${db} in ${config.OutResultRoot}/${qScriptNameNoExt}/log/${db}.log
 */
 func queriesExec(grp config.QueryGroup) {
-	repos := cfg.ConvStrSliceToRepoSlice(grp.QueryRepos)
-	bar := progressbar.Default(int64(len(repos) * len(grp.Queries)))
+	dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
+	bar := progressbar.Default(int64(len(dbs) * len(grp.Queries)))
 	for _, qScript := range grp.Queries {
 		query := config.CreateQuery(qScript, grp.Externals)
 
@@ -130,19 +130,19 @@ func queriesExec(grp config.QueryGroup) {
 		utils.Remkdir(query.DirPath(cfg.ResultRoot))
 
 		var wg sync.WaitGroup
-		for _, repo := range repos {
+		for _, db := range dbs {
 			wg.Add(1)
-			go func(repo config.Repo, query config.Query) {
+			go func(db config.DB, query config.Query) {
 				defer wg.Done()
-				queryForOneRepo(repo, query)
-				bar.Describe(fmt.Sprintf("%-15s %-15s", query.Name(), repo.DirBaseName))
+				queryForOneDB(db, query)
+				bar.Describe(fmt.Sprintf("%-15s %-15s", query.Name(), db.Name))
 				bar.Add(1)
-			}(repo, query)
+			}(db, query)
 		}
 		/*
-			currently multiple queries for one repository is not supported
+			currently multiple queries for one database is not supported
 			`codeql database run-queries` supports multiple queries.
-			But work to collect results from codeql-db/<repo>/results is needed
+			But work to collect results from codeql-db/<db>/results is needed
 		*/
 		wg.Wait()
 	}
@@ -152,9 +152,9 @@ func queriesExec(grp config.QueryGroup) {
 /*
 codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --output=${qResultDir}/${repo} --search-path=./qlsrc/lib --external=$pred/${config.dbRoot}/${repo}/ext/$pred.csv
 */
-func queryForOneRepo(repo config.Repo, query config.Query) {
+func queryForOneDB(db config.DB, query config.Query) {
 	qResultDir := query.DirPath(cfg.ResultRoot)
-	repoOut, repoErr := utils.CreateOutAndErr(repo.DirPath(query.DirPath(cfg.PassLogDir("query"))))
+	repoOut, repoErr := utils.CreateOutAndErr(filepath.Join(cfg.PassLogDir("query"), db.Name))
 	defer repoOut.Close()
 	defer repoErr.Close()
 
@@ -165,12 +165,12 @@ func queryForOneRepo(repo config.Repo, query config.Query) {
 		append([]string{
 			"query",
 			"run",
-			fmt.Sprintf("-d=%s", repo.DBPath(cfg.DBRoot)),
+			fmt.Sprintf("-d=%s", db.Path()),
 			fmt.Sprintf("--search-path=%s", filepath.Join(cfg.QueryRoot, "lib")),
 			query.QueryPath(cfg.QueryRoot),
-			fmt.Sprintf("--output=%s", filepath.Join(qResultDir, repo.DirBaseName)+".bqrs"),
+			fmt.Sprintf("--output=%s", filepath.Join(qResultDir, db.Name)+".bqrs"),
 		},
-			query.ExternalOptions(repo.DBExtDir(cfg.DBRoot))...,
+			query.ExternalOptions(db.ExtDir())...,
 		)...,
 	)
 	fmt.Println(cmd.String())

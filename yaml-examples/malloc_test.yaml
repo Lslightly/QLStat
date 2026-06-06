@@ -29,20 +29,10 @@ buildGrps:
 - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
     - malloc_test
   buildCmd: yaml-examples/build/malloc_test.sh
+  extgenScript: yaml-examples/extgens/malloc_test.sh
 - buildRepos:
   - batchmalloc
-  buildCmd: default
-
-# generate external predicates predicate
-# For repositories in each group, same genScript will be applied in the root directory of repositories
-# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
-externalGenGrps:
-  - genRepos:
-      - malloc_test
-    genScript: yaml-examples/extgens/malloc_test.sh
-  - genRepos:
-      - batchmalloc
-    genScript: yaml-examples/extgens/batchmalloc.sh
+  extgenScript: yaml-examples/extgens/batchmalloc.sh
 
 # query
 queryconfig:
@@ -50,14 +40,14 @@ queryconfig:
   parallelCore: 20 # parallel cores to run query
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   queryGrps:
-    - queryRepos:
+    - queryDBs:
         - batchmalloc
       queries:
         - escape_ext/new_expr_escapes_to_heap_test.ql
         - escape_ext/malloc_test.ql
       externalFiles:
         - yaml-template/escape.yaml
-    - queryRepos:
+    - queryDBs:
         - malloc_test
       queries:
         - pprof_ext/malloc_time.ql

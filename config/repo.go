@@ -54,3 +54,7 @@ func (r *Repo) DBPath(dbroot string) string {
 func (r *Repo) DBExtDir(dbroot string) string {
 	return filepath.Join(r.DBPath(dbroot), "ext")
 }
+
+func (r *Repo) ExtGenDir(dbroot string) string {
+	return filepath.Join(r.DBPath(dbroot), "extgen")
+}

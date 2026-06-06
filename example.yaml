@@ -22,31 +22,28 @@ buildGrps:
     # buildCmd will be executed in the root directory of buildRepos. The behavior is decided by codeql. If a custom build script is specified, then the absolute path will be used.
     #
     # There are 3 types of buildCmd:
-    #   1. default: buildCmd lets codeql figure out the build command.
+    #   1. empty or omitted: buildCmd lets codeql figure out the build command.
     #   2. custom script path: relative path from the project root to the build script.
     #   3. build command: the build command to execute in the root directory of buildRepos.
     #
     # If you use custom script, then 4 environment variables will be set:
     #   - REPO_DIR: the root directory of repository(This is used often in build phase)
     #   - PROJROOT: the root directory of the project
-    buildCmd: default
+    buildCmd: ""
 
-# generate external predicates predicate
-# For repositories in each group, same genScript will be applied in the root directory of repositories
-# There are 2 types of genScript:
-#
-#   1. goescape: it means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
-#   2. custom script path: relative path from the project root to the genScript script.
-#
-# If you use custom genScript, then 4 environment variables will be set:
-#   - PROJROOT: the root directory of the project
-#   - REPO_DIR: the root directory of repository
-#   - OUTPUT_DIR: the directory to store intermediate results/log to generate external predicate database
-#   - DB_EXT_DIR: the directory to store external predicate database
-externalGenGrps:
-  - genRepos:
-      - false-sharing
-    genScript: goescape
+    # generate external predicates predicate
+    # For repositories in each group, same genScript will be applied in the root directory of repositories
+    # There are 2 types of genScript:
+    #
+    #   1. goescape: it means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
+    #   2. custom script path: relative path from the project root to the genScript script.
+    #
+    # If you use custom genScript, then 4 environment variables will be set:
+    #   - PROJROOT: the root directory of the project
+    #   - REPO_DIR: the root directory of repository
+    #   - OUTPUT_DIR: the directory to store intermediate results/log to generate external predicate database
+    #   - DB_EXT_DIR: the directory to store external predicate database
+    extgenScript: goescape
 
 # query
 queryconfig:
@@ -54,9 +51,9 @@ queryconfig:
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   parallelCore: 20 # parallel cores to run query
   queryGrps:
-    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
+    - queryDBs: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
         - false-sharing
-        - rclone/rclone
+        - rclone
       queries: # queries
         - escape_ext/heapvar_should_move.ql
         - escape_ext/ref_in_go_test.ql

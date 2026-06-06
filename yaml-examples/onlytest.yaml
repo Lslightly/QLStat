@@ -28,12 +28,6 @@ buildTimeout: 3600 # timeout for building repository
 buildGrps:
 - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
     - "-"
-  buildCmd: default
-
-# generate external predicates table
-# For repositories in each group, same genScript will be applied in the root directory of repositories
-# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
-externalGenGrps: []
 
 # query
 queryconfig:
@@ -41,8 +35,8 @@ queryconfig:
   parallelCore: 20 # parallel cores to run query
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   queryGrps:
-    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
-      - "-"
+    - queryDBs:
+      - onlytest
       queries: # queries
         - basic/test_file_loc.ql
       externals: []

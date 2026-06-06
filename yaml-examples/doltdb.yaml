@@ -14,16 +14,7 @@ buildTimeout: 3600 # timeout for building repository
 buildGrps:
   - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
     - "-"
-    buildCmd: default
-
-# generate external predicates predicate
-# For repositories in each group, same genScript will be applied in the root directory of repositories
-# "goescape" means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases
-# 
-externalGenGrps:
-  - genRepos:
-      - dolthub/dolt
-    genScript: yaml-examples/extgens/dolt.sh
+    extgenScript: yaml-examples/extgens/dolt.sh
 
 # query
 queryconfig:
@@ -31,9 +22,8 @@ queryconfig:
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   parallelCore: 20 # parallel cores to run query
   queryGrps:
-    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
-        # - false-sharing
-        - dolthub/dolt
+    - queryDBs:
+        - dolt
       queries: # queries
         - escape_ext/heapvar_should_move.ql
         - escape_ext/ref_in_go_test.ql

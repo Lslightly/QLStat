@@ -76,6 +76,16 @@ func batchBuild(cfg *config.Artifact) {
 
 func buildGrp(cfg *config.Artifact, wg *sync.WaitGroup, resChan chan CreateDBResult, grp config.BuildGroup) {
 	repos := cfg.ConvStrSliceToRepoSlice(grp.BuildRepos)
+
+	// User error: multiple repos with explicit dbName is not supported
+	if grp.DBName != "" && len(repos) > 1 {
+		var repoNames []string
+		for _, r := range repos {
+			repoNames = append(repoNames, r.FullName)
+		}
+		log.Fatalf("dbName %q conflicts with multiple repos: %v. Leave dbName empty to auto-name by repo.", grp.DBName, repoNames)
+	}
+
 	bar := progressbar.Default(int64(len(repos)), "Creating database")
 	defer bar.Close()
 	if len(repos) < 10 {
@@ -92,7 +102,11 @@ func buildGrp(cfg *config.Artifact, wg *sync.WaitGroup, resChan chan CreateDBRes
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			build(cfg, repo, resChan, grp.BuildCommand)
+			dbPath := repo.DBPath(cfg.DBRoot)
+			if grp.DBName != "" { // use custom dbName
+				dbPath = filepath.Join(cfg.DBRoot, grp.DBName)
+			}
+			build(cfg, repo, resChan, grp.BuildCommand, dbPath)
 		}()
 	}
 }
@@ -136,7 +150,9 @@ cd "$(dirname "$0")" || exit
 failed_list=(
 `)
 	for _, dbPath := range failedPaths {
-		scriptContent.WriteString("\t\"" + dbPath + "\"\n")
+		scriptContent.WriteString("\t\"")
+		scriptContent.WriteString(dbPath)
+		scriptContent.WriteString("\"\n")
 	}
 	scriptContent.WriteString(`)
 for dir in "${failed_list[@]}"; do
@@ -152,19 +168,18 @@ done
 	log.Printf("Cleanup script for failed directories created at: %s", cleanupScriptPath)
 }
 
-func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult, buildcommand string) {
+func build(cfg *config.Artifact, repo config.Repo, resChan chan CreateDBResult, buildcommand string, dbPath string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.BuildTimeout)*time.Second)
 	defer cancel()
 
 	outFile, errFile := utils.CreateOutAndErr(repo.DirPath(cfg.PassLogDir("build")))
 	defer outFile.Close()
 	defer errFile.Close()
-	dbPath := repo.DBPath(cfg.DBRoot)
 	utils.MkdirAll(filepath.Dir(dbPath))
 	args := []string{
 		"database", "create", dbPath, "-l=" + cfg.Lang, "--overwrite", "-s=" + repo.DirPath(cfg.RepoRoot),
 	}
-	if buildcommand != "default" {
+	if buildcommand != "" {
 		if _, err := os.Stat(buildcommand); err != nil {
 			// buildcommand does not exist
 			args = append(args, "-c", buildcommand)

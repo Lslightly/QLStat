@@ -22,14 +22,14 @@ The following example from [movedtoheap_test.yaml](../../cmd/escape_adapter/move
 
 ```yaml
 # Configuration for escape analysis extension
-externalGenGrps:
-  - genRepos:
+buildGrps:
+  - buildRepos:
       - "-"
-    genScript: goescape  # This triggers go build with -gcflags=-m=2 ./...
+    extgenScript: goescape  # Triggers go build with -gcflags=-m=2 ./...
 
 queryconfig:
   queryGrps:
-    - queryRepos:
+    - queryDBs:
         - escape
       queries:
         - escape_ext/moved_to_heap_var_test.ql # The queries you want to use
@@ -38,7 +38,7 @@ queryconfig:
 ```
 
 In this configuration:
-- `genScript: goescape` instructs the system to compile repositories with escape analysis enabled
+- `extgenScript: goescape` instructs the system to compile repositories with escape analysis enabled
   - Note that if you use custom script, 4 environment variables will be set. You can use them in your custom script.
     - `REPO_DIR`: The directory path of the repository
     - `OUTPUT_DIR`: The directory path of the output log file

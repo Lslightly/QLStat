@@ -11,14 +11,13 @@ import (
 )
 
 type Artifact struct {
-	RepoRoot     string             `yaml:"repoRoot"`
-	LogRoot      string             `yaml:"logRoot"`
-	Sources      []*GitSource       `yaml:"sources"`
-	DBRoot       string             `yaml:"dbRoot"`
-	Lang         string             `yaml:"language"`
-	BuildTimeout int                `yaml:"buildTimeout"`
-	BuildGrps    []BuildGroup       `yaml:"buildGrps"`
-	ExtGenGrps   []ExternalGenGroup `yaml:"externalGenGrps"`
+	RepoRoot     string       `yaml:"repoRoot"`
+	LogRoot      string       `yaml:"logRoot"`
+	Sources      []*GitSource `yaml:"sources"`
+	DBRoot       string       `yaml:"dbRoot"`
+	Lang         string       `yaml:"language"`
+	BuildTimeout int          `yaml:"buildTimeout"`
+	BuildGrps    []BuildGroup `yaml:"buildGrps"`
 	QueryConfig  `yaml:"queryconfig"`
 }
 
@@ -31,11 +30,13 @@ type QueryConfig struct {
 
 type BuildGroup struct {
 	BuildRepos   []string `yaml:"buildRepos"`
+	DBName       string   `yaml:"dbName"`
 	BuildCommand string   `yaml:"buildCmd"`
+	ExtGenScript string   `yaml:"extgenScript"`
 }
 
 type QueryGroup struct {
-	QueryRepos    []string `yaml:"queryRepos"`
+	QueryDBs      []string `yaml:"queryDBs"`
 	Queries       []string `yaml:"queries"`
 	Externals     []string `yaml:"externals"`
 	ExternalFiles []string `yaml:"externalFiles"`
@@ -50,11 +51,6 @@ func ReadExternalFiles(filename string) (externals []string, err error) {
 	}
 	yaml.Unmarshal(bs, &exts)
 	return exts, nil
-}
-
-type ExternalGenGroup struct {
-	GenRepos  []string `yaml:"genRepos"`
-	GenScript string   `yaml:"genScript"`
 }
 
 var Nowstr string = time.Now().Local().Format("0102-150405")
@@ -169,4 +165,14 @@ func (art *Artifact) ConvStrSliceToRepoSlice(repos []string) (res []Repo) {
 		}
 		return
 	}
+}
+
+func (art *Artifact) ConvStrSliceToDBSlice(dbnames []string) (res []DB) {
+	for _, dbname := range dbnames {
+		res = append(res, DB{
+			root: art.DBRoot,
+			Name: dbname,
+		})
+	}
+	return
 }

@@ -1,77 +1,75 @@
 logRoot: logs
-repoRoot: repos # repoRoot stores all repositories
-dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+repoRoot: repos           # stores all cloned source repositories
+dbRoot: codeql-db         # stores all CodeQL databases, dbRoot/<dbName>/
 
-# clone
+# source repositories to clone
 sources:
-  - prefix: https://github.com/ # clone url prefix
+  - prefix: https://github.com/
     fullnames:
-      - rclone/rclone 28c187b # you can specify branch/commit hash here with only spaces in between org/repo and branch. If repository eixsts, git checkout will be used to switch branch
+      - rclone/rclone 28c187b       # optional branch/commit
       - cloudwego/kitex
       - Lslightly/dolt heapvar_should_move
       - Lslightly/kitex-examples heapvar_should_move
 
-# build database
-language: go # language to analyze
-buildTimeout: 3600 # timeout for building repository
+# build — create CodeQL databases
+# dbName is the database name, used as the directory under dbRoot/.
+#   - empty or omitted: use the repository name as the database name
+#   - explicitly set:   use the given name (e.g. "rclone-custom")
+# The same repository can be built with different methods,
+# producing databases with different names.
+# dbName must be unique across all build groups.
+#
+# buildCmd — the build command passed to codeql.
+#   - empty or omitted: use the default build method (codeql auto-detects)
+#   - set:              a shell command(arguments are separated by space. Notice that if
+#                       there are spaces between "", like "-f -l", then build script can be used) or path to a build script
+#
+# extgenScript (optional) — external predicate generation script.
+#   - empty or omitted: skip extgen for this database
+#   - "goescape":      run go build -gcflags=-m=2 and convert to CSV
+#   - custom script:   path to a script (see genScript in the old schema)
+language: go
+buildTimeout: 3600
 buildGrps:
-  - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
-    - rclone/rclone
-    - Lslightly/dolt
-    # buildCmd will be executed in the root directory of buildRepos. The behavior is decided by codeql. If a custom build script is specified, then the absolute path will be used.
-    #
-    # There are 3 types of buildCmd:
-    #   1. default: buildCmd lets codeql figure out the build command.
-    #   2. custom script path: relative path from the project root to the build script.
-    #   3. build command: the build command to execute in the root directory of buildRepos.
-    #
-    # If you use custom script, then 4 environment variables will be set:
-    #   - REPO_DIR: the root directory of repository(This is used often in build phase)
-    #   - PROJROOT: the root directory of the project
-    buildCmd: default
-  - buildRepos:
-    - Lslightly/kitex-examples
-    buildCmd: yaml-examples/build/kitex-examples.sh
-  - buildRepos:
-    - cloudwego/kitex
+  # rclone default build
+  - buildRepos: [rclone/rclone]
+    extgenScript: goescape
+
+  # same rclone, different build → explicit dbName to avoid conflict
+  - buildRepos: [rclone/rclone]
+    dbName: rclone-custom
     buildCmd: go build -a ./...
+    extgenScript: goescape
 
+  # dolt
+  - buildRepos: [Lslightly/dolt]
+    extgenScript: yaml-examples/extgens/dolt.sh
 
-# generate external predicates predicate
-# For repositories in each group, same genScript will be applied in the root directory of repositories
-# There are 2 types of genScript:
-#
-#   1. goescape: it means `go build -a -gcflags=-m=2 ./...`. The stderr will be redirected to $logRoot/path/to/repo/m2.log. Then escape_adapter is used to generate databases. The external predicate database is generated in $dbRoot/path/to/repo/ext/$external.csv.
-#   2. custom script path: relative path from the project root to the genScript script.
-#
-# If you use custom genScript, then 4 environment variables will be set:
-#   - PROJROOT: the root directory of the project
-#   - REPO_DIR: the root directory of repository
-#   - OUTPUT_DIR: the directory to store intermediate results/log to generate external predicate database
-#   - DB_EXT_DIR: the directory to store external predicate database
-externalGenGrps:
-  - genRepos:
-      - rclone/rclone
-      - cloudwego/kitex
-    genScript: goescape
-  - genRepos:
-      - Lslightly/dolt
-    genScript: yaml-examples/extgens/dolt.sh
-  - genRepos:
-      - Lslightly/kitex-examples
-    genScript: yaml-examples/extgens/kitex-examples.sh
+  # kitex-examples
+  - buildRepos: [Lslightly/kitex-examples]
+    buildCmd: yaml-examples/build/kitex-examples.sh
+    extgenScript: yaml-examples/extgens/kitex-examples.sh
 
-# query
+  # kitex
+  - buildRepos: [cloudwego/kitex]
+    buildCmd: go build -a ./...
+    extgenScript: goescape
+
+# query — run queries against databases
+# queryDBs lists the databases to query (by dbName).
+#   "*" — scan all databases under dbRoot/
+#   "-" — all databases defined in buildGrps
 queryconfig:
-  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
-  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
-  parallelCore: 20 # parallel cores to run query
+  resultRoot: codeqlResult
+  queryRoot: qlsrc
+  parallelCore: 20
   queryGrps:
-    - queryRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
-        - rclone/rclone
-        - Lslightly/dolt
-        - cloudwego/kitex
-        - Lslightly/kitex-examples
-      queries: # queries
+    - queryDBs:
+        - rclone
+        - rclone-custom
+        - dolt
+        - kitex-examples
+        - kitex
+      queries:
         - escape_ext/heapvar_should_move.ql
-      externals: [movedToHeap] # names for external predicates. For each predicate $pred, the external database(csv file) is stored in $dbRoot/path/to/repo/ext/$pred.csv. Currently only "movedToHeap" is supported.
+      externals: [movedToHeap]
