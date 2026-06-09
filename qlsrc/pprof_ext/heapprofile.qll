@@ -16,7 +16,7 @@ import profile
  * Each sample also carries a numeric label "bytes" indicating
  * the average block size (AllocBytes / AllocObjects) for that sample.
  */
-class HeapProfile extends Profile {
+class HeapProfile instanceof Profile {
     HeapProfile() {
         // Period type must be ("space", "bytes")
         this.getPeriodType().getType() = "space" and
@@ -33,6 +33,10 @@ class HeapProfile extends Profile {
         this.getSampleType(3).getUnit() = "bytes"
     }
 
+    string toString() {
+        result = "heapprofile"
+    }
+
     // -----------------------------------------------------------------------
     // Sum helpers — total across all samples for each value index
     // -----------------------------------------------------------------------
@@ -42,7 +46,7 @@ class HeapProfile extends Profile {
      */
     QlBuiltins::BigInt allocObjectsSum() {
         result = sum(Sample sample
-            | this.getSample(_) = sample
+            | super.getSample(_) = sample
             | sample.getValue(0)
         )
     }
@@ -52,7 +56,7 @@ class HeapProfile extends Profile {
      */
     QlBuiltins::BigInt allocSpaceSum() {
         result = sum(Sample sample
-            | this.getSample(_) = sample
+            | super.getSample(_) = sample
             | sample.getValue(1)
         )
     }
@@ -62,7 +66,7 @@ class HeapProfile extends Profile {
      */
     QlBuiltins::BigInt inuseObjectsSum() {
         result = sum(Sample sample
-            | this.getSample(_) = sample
+            | super.getSample(_) = sample
             | sample.getValue(2)
         )
     }
@@ -72,7 +76,7 @@ class HeapProfile extends Profile {
      */
     QlBuiltins::BigInt inuseSpaceSum() {
         result = sum(Sample sample
-            | this.getSample(_) = sample
+            | super.getSample(_) = sample
             | sample.getValue(3)
         )
     }
@@ -87,7 +91,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt allocObjectsOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName)
             | sample.getValue(0)
         )
@@ -99,7 +103,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt allocSpaceOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName)
             | sample.getValue(1)
         )
@@ -111,7 +115,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt inuseObjectsOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName)
             | sample.getValue(2)
         )
@@ -123,7 +127,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt inuseSpaceOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName)
             | sample.getValue(3)
         )
@@ -140,7 +144,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt allocObjectsFlatOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.getLocation(0).getLine(_).getFunction().getName() = funcName
             | sample.getValue(0)
@@ -154,7 +158,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt allocSpaceFlatOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.getLocation(0).getLine(_).getFunction().getName() = funcName
             | sample.getValue(1)
@@ -168,7 +172,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt inuseObjectsFlatOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.getLocation(0).getLine(_).getFunction().getName() = funcName
             | sample.getValue(2)
@@ -182,7 +186,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt inuseSpaceFlatOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.getLocation(0).getLine(_).getFunction().getName() = funcName
             | sample.getValue(3)
@@ -239,7 +243,7 @@ class HeapProfile extends Profile {
     bindingset[funcName, lineNumber]
     QlBuiltins::BigInt allocSpaceOfLine(string funcName, int lineNumber) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsLine(funcName, lineNumber)
             | sample.getValue(1)
         )
@@ -251,7 +255,7 @@ class HeapProfile extends Profile {
     bindingset[funcName, lineNumber]
     QlBuiltins::BigInt inuseSpaceOfLine(string funcName, int lineNumber) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsLine(funcName, lineNumber)
             | sample.getValue(3)
         )
@@ -268,7 +272,7 @@ class HeapProfile extends Profile {
     bindingset[funcName, focusFuncName]
     QlBuiltins::BigInt allocSpaceUnderFunc(string funcName, string focusFuncName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.containsFunc(focusFuncName)
             | sample.getValue(1)
@@ -282,7 +286,7 @@ class HeapProfile extends Profile {
     bindingset[funcName, focusFuncName]
     QlBuiltins::BigInt inuseSpaceUnderFunc(string funcName, string focusFuncName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.containsFunc(focusFuncName)
             | sample.getValue(3)
@@ -302,7 +306,7 @@ class HeapProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt blockSizeSumOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName)
             | getBlockSize(sample)
         )

@@ -15,7 +15,7 @@ import profile_ext
  *
  * Note: The id of Profile itself is always 0 (singleton in the profile).
  */
-class Profile extends int {
+class Profile instanceof int {
     int drop_frames;
     int keep_frames;
     QlBuiltins::BigInt time_nanos;
@@ -36,6 +36,10 @@ class Profile extends int {
             default_sample_type,
             doc_url
         )
+    }
+
+    string toString() {
+        result = "profile"
     }
 
     /**
