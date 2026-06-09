@@ -52,6 +52,7 @@ queryconfig:
       queries:
         - pprof_ext/malloc_time.ql
         - pprof_ext/malloc_line.ql
+        - pprof_ext/heap_test.ql
       externals:
         - queryLine
       externalFiles:
