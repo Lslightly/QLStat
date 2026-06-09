@@ -3,11 +3,11 @@
 # 1. go run ./cmd/batch_clone_build -noclone yaml-examples/malloc_test.yaml
 # 2. go run ./cmd/codeql_qdriver -collect yaml-examples/malloc_test.yaml
 # important steps in `go run ./cmd/batch_clone_build -noclone yaml-examples/malloc_test.yaml`
+mkdir -p codeql-db/malloc_test/extgen codeql-db/malloc_test/ext
 export REPO_DIR=$(realpath repos/test/malloc_test)
 export OUTPUT_DIR=$(realpath codeql-db/malloc_test/extgen)
 export PROJROOT=$(realpath "$(dirname "$0")/..")
 export DB_EXT_DIR=$(realpath codeql-db/malloc_test/ext)
-echo $PROJROOT
 ## build
 codeql database create codeql-db/malloc_test -l=go --overwrite -s=repos/test/malloc_test -c $PROJROOT/yaml-examples/build/malloc_test.sh
 ## extgen
