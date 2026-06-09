@@ -286,3 +286,122 @@ func compareAndPrintResults(codeQLCounts, csvCounts map[string]int64) bool {
 
 	return allMatch
 }
+
+func verifyUseExtDirectlyCount(dbPath, extDir string) (bool, error) {
+	projRoot := utils.ProjectRoot()
+	qlDir := filepath.Join(projRoot, "qlsrc/pprof_ext/use_ext_directly")
+
+	// Print header
+	fmt.Printf("\n%-25s %-15s %-15s %-10s\n", "PREDICATE", "QUERY_COUNT", "EXT_CSV_COUNT", "STATUS")
+	fmt.Println(strings.Repeat("-", 70))
+
+	allMatch := true
+
+	for _, predicate := range externalPredicates {
+		queryFile := getQueryFileName(predicate)
+		queryPath := filepath.Join(qlDir, queryFile)
+
+		// Run query and count result rows
+		queryCount, err := executeUseExtDirectlyQuery(dbPath, queryPath)
+		if err != nil {
+			return false, fmt.Errorf("failed to execute query for %s: %w", predicate, err)
+		}
+
+		// Count CSV rows in ext directory
+		extCSVPath := filepath.Join(extDir, predicate+".csv")
+		extCSVCount, err := countCSVLines(extCSVPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				extCSVCount = 0
+			} else {
+				return false, fmt.Errorf("failed to count CSV for %s: %w", predicate, err)
+			}
+		}
+
+		// Compare
+		status := "MATCH"
+		if queryCount != extCSVCount {
+			status = "MISMATCH"
+			allMatch = false
+		}
+
+		fmt.Printf("%-25s %-15d %-15d %-10s\n", predicate, queryCount, extCSVCount, status)
+	}
+
+	fmt.Println(strings.Repeat("-", 70))
+
+	return allMatch, nil
+}
+
+// getQueryFileName maps a predicate name to its query file name in use_ext_directly.
+// Most predicates share the same name as their .ql file, with a few exceptions.
+func getQueryFileName(predicate string) string {
+	switch predicate {
+	case "profile_to_string_table":
+		return "profile_to_str_tbl.ql"
+	default:
+		return predicate + ".ql"
+	}
+}
+
+// executeUseExtDirectlyQuery runs a CodeQL query from the use_ext_directly directory
+// and returns the number of result rows produced by the query.
+func executeUseExtDirectlyQuery(dbPath, queryFilePath string) (int64, error) {
+	projRoot := utils.ProjectRoot()
+
+	tmpFile, err := os.CreateTemp("", "use_ext_directly_*.csv")
+	if err != nil {
+		return 0, fmt.Errorf("failed to create temp file: %w", err)
+	}
+	defer os.Remove(tmpFile.Name())
+	_ = tmpFile.Close()
+	bqrsFile := tmpFile.Name() + ".bqrs"
+
+	externalOpts := generateExternalOptions(dbPath)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	cmdArgs := []string{
+		"query", "run",
+		"-d=" + dbPath,
+		"--search-path=" + filepath.Join(projRoot, "qlsrc/lib"),
+		queryFilePath,
+		"--output=" + bqrsFile,
+	}
+	cmdArgs = append(cmdArgs, externalOpts...)
+
+	cmd := exec.CommandContext(ctx, "codeql", cmdArgs...)
+	cmd.Dir = projRoot
+	cmd.Stdout = nil
+	cmd.Stderr = nil
+
+	if err := cmd.Run(); err != nil {
+		return 0, fmt.Errorf("codeql query run failed: %w", err)
+	}
+	defer os.Remove(bqrsFile)
+
+	// Decode bqrs to CSV
+	cmd = exec.CommandContext(ctx, "codeql",
+		"bqrs", "decode",
+		"--format=csv",
+		bqrsFile,
+		"--output="+tmpFile.Name(),
+	)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return 0, fmt.Errorf("codeql bqrs decode failed: %w", err)
+	}
+
+	// Count result rows (exclude the CSV header line)
+	totalLines, err := countCSVLines(tmpFile.Name())
+	if err != nil {
+		return 0, fmt.Errorf("failed to count query result lines: %w", err)
+	}
+	if totalLines <= 1 {
+		return 0, nil
+	}
+	return totalLines - 1, nil
+}

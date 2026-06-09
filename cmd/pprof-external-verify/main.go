@@ -9,8 +9,9 @@ import (
 
 // Verification types supported by the tool
 const (
-	VerificationTypeInstanceCount = "instance_count"
-	VerificationTypeRelationCount = "relation_count"
+	VerifyTypeInstanceCount  = "instance_count"
+	VerifyTypeRelationCount  = "relation_count"
+	VerifyTypeUseExtDirectly = "use_ext_directly_count"
 )
 
 func main() {
@@ -20,6 +21,7 @@ func main() {
 		fmt.Fprintln(os.Stderr, "\nVerification types:")
 		fmt.Fprintln(os.Stderr, "  instance_count   - Verify count consistency of Sample, Location, Line, Function, etc.")
 		fmt.Fprintln(os.Stderr, "  relation_count   - Verify count consistency of sample_to_location_id, sample_to_value, etc. (TODO)")
+		fmt.Fprintln(os.Stderr, "  use_ext_directly_count - Verify count consistency of predicates used directly in external queries")
 		fmt.Fprintln(os.Stderr, "\nOptions:")
 		flag.PrintDefaults()
 	}
@@ -38,7 +40,7 @@ func main() {
 	verificationType := flag.Arg(1)
 
 	// Validate verification type
-	if verificationType != VerificationTypeInstanceCount && verificationType != VerificationTypeRelationCount {
+	if verificationType != VerifyTypeInstanceCount && verificationType != VerifyTypeRelationCount && verificationType != VerifyTypeUseExtDirectly {
 		fmt.Fprintf(os.Stderr, "Error: Unknown verification type '%s'\n", verificationType)
 		flag.Usage()
 		os.Exit(2)
@@ -51,9 +53,11 @@ func main() {
 	var err error
 
 	switch verificationType {
-	case VerificationTypeInstanceCount:
+	case VerifyTypeInstanceCount:
 		success, err = verifyInstanceCount(dbPath, externalDir)
-	case VerificationTypeRelationCount:
+	case VerifyTypeUseExtDirectly:
+		success, err = verifyUseExtDirectlyCount(dbPath, externalDir)
+	case VerifyTypeRelationCount:
 		fmt.Fprintln(os.Stderr, "Error: relation_count verification is not yet implemented")
 		os.Exit(2)
 	}
