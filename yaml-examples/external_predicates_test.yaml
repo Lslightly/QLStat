@@ -1,0 +1,71 @@
+logRoot: logs
+repoRoot: repos # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+
+# clone
+sources:
+  - prefix: https://test/ # clone url prefix
+    fullnames:
+      # - aliasFieldAcc
+      # - assignToInterface
+      # - convInterface
+      # - CWE-369
+      # - CWE-400
+      # - CWE-525
+      # - CWE-807
+      - malloc_test
+      # - intraResourceLeak
+      # - memacc
+      # - memStatSliceExprSetNil
+      # - pkgcall
+      # - pkgtest
+      # - sliceExprNotSetNil
+
+# build
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildGrps:
+- buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+    - malloc_test
+  buildCmd: yaml-examples/build/malloc_test.sh
+  extgenScript: yaml-examples/extgens/malloc_test.sh
+
+# query
+queryconfig:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  parallelCore: 20 # parallel cores to run query
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  queryGrps:
+    - queryDBs:
+        - malloc_test
+      queries:
+        # Profile associations
+        - pprof_ext/use_ext_directly/profile_to_sample_type.ql
+        - pprof_ext/use_ext_directly/profile_to_sample.ql
+        - pprof_ext/use_ext_directly/profile_to_mapping.ql
+        - pprof_ext/use_ext_directly/profile_to_location.ql
+        - pprof_ext/use_ext_directly/profile_to_function.ql
+        - pprof_ext/use_ext_directly/profile_to_str_tbl.ql
+        - pprof_ext/use_ext_directly/profile_to_comment.ql
+        # Core entities
+        - pprof_ext/use_ext_directly/profile.ql
+        - pprof_ext/use_ext_directly/value_type.ql
+        - pprof_ext/use_ext_directly/sample.ql
+        - pprof_ext/use_ext_directly/label.ql
+        - pprof_ext/use_ext_directly/mapping.ql
+        - pprof_ext/use_ext_directly/location.ql
+        - pprof_ext/use_ext_directly/line.ql
+        - pprof_ext/use_ext_directly/function.ql
+        - pprof_ext/use_ext_directly/string_table.ql
+        # Cross-references
+        - pprof_ext/use_ext_directly/sample_to_location_id.ql
+        - pprof_ext/use_ext_directly/sample_to_value.ql
+        - pprof_ext/use_ext_directly/sample_to_label.ql
+        - pprof_ext/use_ext_directly/location_to_line.ql
+        # Custom
+        - pprof_ext/use_ext_directly/query_line.ql
+      externals:
+        - queryLine
+      externalFiles:
+        - yaml-template/pprof.yaml
+
