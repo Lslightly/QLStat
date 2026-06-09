@@ -39,7 +39,7 @@ class Profile instanceof int {
     }
 
     string toString() {
-        result = "profile"
+        result = "Profile " + super.toString()
     }
 
     /**
@@ -144,7 +144,8 @@ class Profile instanceof int {
 /** ValueType describes the semantics and measurement units of a value.
  * [profile.proto:104-107](../../doc/adapters/pprof/profile.proto#L104-107)
  */
-class ValueType extends int {
+class ValueType instanceof int {
+    string toString() { result = "ValueType "+super.toString() }
     /** Index into string table.
      * [profile.proto:106](../../doc/adapters/pprof/profile.proto#L106)
      */
@@ -174,8 +175,10 @@ class ValueType extends int {
  *
  * Note: Sample id corresponds to its index in Profile.sample array.
  */
-class Sample extends int {
+class Sample instanceof int {
     Sample() { sample(this) }
+
+    string toString() { result = "Sample " + super.toString() }
 
     /**
      * The ids recorded here correspond to a Profile.location.id.
@@ -238,7 +241,8 @@ class Sample extends int {
  * Use getStr() for string labels, num for numeric labels.
  * [profile.proto:137-153](../../doc/adapters/pprof/profile.proto#L137-153)
  */
-class Label extends int {
+class Label instanceof int {
+    string toString() { result = "Label " + super.toString() }
     /** Index into string table.
      * [profile.proto:140](../../doc/adapters/pprof/profile.proto#L140)
      */
@@ -273,7 +277,8 @@ class Label extends int {
     int getNum() { result = num }
 }
 
-class Mapping extends int {
+class Mapping instanceof int {
+    string toString() { result = "Mapping " + super.toString() }
     /** [profile.proto:160](../../doc/adapters/pprof/profile.proto#L160) */
     QlBuiltins::BigInt memory_start;
     /** [profile.proto:162](../../doc/adapters/pprof/profile.proto#L162) */
@@ -351,7 +356,8 @@ class Mapping extends int {
  * Each location optionally belongs to one Mapping (via mapping_id).
  * [profile.proto:183-209](../../doc/adapters/pprof/profile.proto#L183-209)
  */
-class Location extends int {
+class Location instanceof int {
+    string toString() { result = "Location " + super.toString() }
     /** [profile.proto:189](../../doc/adapters/pprof/profile.proto#L189) */
     Mapping mapping_id;
     /** [profile.proto:195](../../doc/adapters/pprof/profile.proto#L195) */
@@ -385,7 +391,8 @@ class Location extends int {
     boolean isFolded() { result = is_folded }
 }
 
-class Line extends int {
+class Line instanceof int {
+    string toString() { result = "Line " + super.toString() }
     /** [profile.proto:214](../../doc/adapters/pprof/profile.proto#L214) */
     Function function_id;
     /** [profile.proto:216](../../doc/adapters/pprof/profile.proto#L216) */
@@ -404,7 +411,8 @@ class Line extends int {
     int getColumn() { result = column }
 }
 
-class Function extends int {
+class Function instanceof int {
+    string toString() { result = "Function " + super.toString() }
     /** [profile.proto:225](../../doc/adapters/pprof/profile.proto#L225) */
     int name;
     /** [profile.proto:228](../../doc/adapters/pprof/profile.proto#L228) */

@@ -19,22 +19,22 @@ import profile
 class HeapProfile instanceof Profile {
     HeapProfile() {
         // Period type must be ("space", "bytes")
-        this.getPeriodType().getType() = "space" and
-        this.getPeriodType().getUnit() = "bytes" and
+        super.getPeriodType().getType() = "space" and
+        super.getPeriodType().getUnit() = "bytes" and
         // Exactly 4 sample types: alloc_objects/count, alloc_space/bytes,
         // inuse_objects/count, inuse_space/bytes
-        this.getSampleType(0).getType() = "alloc_objects" and
-        this.getSampleType(0).getUnit() = "count" and
-        this.getSampleType(1).getType() = "alloc_space" and
-        this.getSampleType(1).getUnit() = "bytes" and
-        this.getSampleType(2).getType() = "inuse_objects" and
-        this.getSampleType(2).getUnit() = "count" and
-        this.getSampleType(3).getType() = "inuse_space" and
-        this.getSampleType(3).getUnit() = "bytes"
+        super.getSampleType(0).getType() = "alloc_objects" and
+        super.getSampleType(0).getUnit() = "count" and
+        super.getSampleType(1).getType() = "alloc_space" and
+        super.getSampleType(1).getUnit() = "bytes" and
+        super.getSampleType(2).getType() = "inuse_objects" and
+        super.getSampleType(2).getUnit() = "count" and
+        super.getSampleType(3).getType() = "inuse_space" and
+        super.getSampleType(3).getUnit() = "bytes"
     }
 
     string toString() {
-        result = "heapprofile"
+        result = "HeapProfile " + this.(int).toString()
     }
 
     // -----------------------------------------------------------------------
