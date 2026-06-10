@@ -21,17 +21,19 @@ float timeInUnit(QlBuiltins::BigInt t, string unit, int precision) {
 /**
  * Extension of Profile providing aggregation methods for CPU sampling data.
  */
-class CPUProfile extends Profile {
+class CPUProfile instanceof Profile {
     CPUProfile() {
         any()
     }
+
+    string toString() { result = "CPUProfile " + this.(int).toString() }
 
     /**
      * Sum of all sample values at index 1 (total time in nanoseconds).
      */
     QlBuiltins::BigInt sampleTimeSum() {
         result = sum(Sample sample
-            | this.getSample(_) = sample
+            | super.getSample(_) = sample
             | sample.getValue(1)
         )
     }
@@ -42,7 +44,7 @@ class CPUProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt cumTimeOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName)
             | sample.getValue(1) // time is at index 1
         )
@@ -56,7 +58,7 @@ class CPUProfile extends Profile {
     bindingset[funcName]
     QlBuiltins::BigInt flatTimeOfFunc(string funcName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.getLocation(0).getLine(_).getFunction().getName() = funcName
             | sample.getValue(1) // time is at index 1
@@ -69,7 +71,7 @@ class CPUProfile extends Profile {
     bindingset[funcName, lineNumber]
     QlBuiltins::BigInt cumTimeOfLine(string funcName, int lineNumber) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsLine(funcName, lineNumber)
             | sample.getValue(1) // time is at index 1
         )
@@ -91,7 +93,7 @@ class CPUProfile extends Profile {
     bindingset[funcName, focusFuncName]
     QlBuiltins::BigInt cumTimeUnderFunc(string funcName, string focusFuncName) {
         result = sum(Sample sample
-            | this.getSample(_) = sample and
+            | super.getSample(_) = sample and
             sample.containsFunc(funcName) and
             sample.containsFunc(focusFuncName)
             | sample.getValue(1)
