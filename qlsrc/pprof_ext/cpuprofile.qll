@@ -39,63 +39,63 @@ class CPUProfile instanceof Profile {
     }
 
     /**
-     * Cumulative time (nanoseconds) of samples whose call stack contains `funcName`.
+     * Cumulative time (nanoseconds) of samples whose call stack contains `funcFullName`.
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt cumTimeOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt cumTimeOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName)
+            sample.containsFunc(funcFullName)
             | sample.getValue(1) // time is at index 1
         )
     }
 
 
     /**
-     * Flat/self time (nanoseconds) of `funcName`: only samples where `funcName` is
+     * Flat/self time (nanoseconds) of `funcFullName`: only samples where `funcFullName` is
      * at the top of the stack (location index 0).
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt flatTimeOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt flatTimeOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.getLocation(0).getLine(_).getFunction().getName() = funcName
+            sample.containsFunc(funcFullName) and
+            sample.getLocation(0).getLine(_).getFunction().getName() = funcFullName
             | sample.getValue(1) // time is at index 1
         )
     }
 
     /**
-     * Cumulative time (nanoseconds) of `funcName` at a specific `lineNumber`.
+     * Cumulative time (nanoseconds) of `funcFullName` at a specific `lineNumber`.
      */
-    bindingset[funcName, lineNumber]
-    QlBuiltins::BigInt cumTimeOfLine(string funcName, int lineNumber) {
+    bindingset[funcFullName, lineNumber]
+    QlBuiltins::BigInt cumTimeOfLine(string funcFullName, int lineNumber) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsLine(funcName, lineNumber)
+            sample.containsLine(funcFullName, lineNumber)
             | sample.getValue(1) // time is at index 1
         )
     }
 
     /**
-     * Percentage of cumulative time for `funcName` relative to total sample time,
+     * Percentage of cumulative time for `funcFullName` relative to total sample time,
      * with `precision` decimal places.
      */
-    bindingset[funcName, precision]
-    float funcPercent(string funcName, int precision) {
-        result = percent(cumTimeOfFunc(funcName), sampleTimeSum(), precision)
+    bindingset[funcFullName, precision]
+    float funcPercent(string funcFullName, int precision) {
+        result = percent(cumTimeOfFunc(funcFullName), sampleTimeSum(), precision)
     }
 
     /**
-     * Cumulative time (nanoseconds) of `funcName` in the call context of `focusFuncName`.
+     * Cumulative time (nanoseconds) of `funcFullName` in the call context of `focusfuncFullName`.
      * Only samples that contain both functions are counted.
      */
-    bindingset[funcName, focusFuncName]
-    QlBuiltins::BigInt cumTimeUnderFunc(string funcName, string focusFuncName) {
+    bindingset[funcFullName, focusfuncFullName]
+    QlBuiltins::BigInt cumTimeUnderFunc(string funcFullName, string focusfuncFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.containsFunc(focusFuncName)
+            sample.containsFunc(funcFullName) and
+            sample.containsFunc(focusfuncFullName)
             | sample.getValue(1)
         )
     }

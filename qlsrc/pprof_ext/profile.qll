@@ -219,17 +219,17 @@ class Sample instanceof int {
     Label getLabel(int index) { sample_to_label(this, index, result) }
 
     /**
-     * Holds if the sample's call stack contains a function named `funcName`.
+     * Holds if the sample's call stack contains a function named `funcFullName`.
      */
-    predicate containsFunc(string funcName) {
-        exists(int index | getLocation(index).getLine(_).getFunction().getName() = funcName)
+    predicate containsFunc(string funcFullName) {
+        exists(int index | getLocation(index).getLine(_).getFunction().getName() = funcFullName)
     }
 
     /**
-     * Holds if the sample's call stack contains both `funcName` and `lineNumber`.
+     * Holds if the sample's call stack contains both `funcFullName` and `lineNumber`.
      */
-    predicate containsLine(string funcName, int lineNumber) {
-        exists(Line line | getLocation(_).getLine(_) = line and line.getLineNumber() = lineNumber and line.getFunction().getName() = funcName)
+    predicate containsLine(string funcFullName, int lineNumber) {
+        exists(Line line | getLocation(_).getLine(_) = line and line.getLineNumber() = lineNumber and line.getFunction().getName() = funcFullName)
     }
 }
 

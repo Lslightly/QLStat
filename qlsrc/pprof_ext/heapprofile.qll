@@ -82,113 +82,113 @@ class HeapProfile instanceof Profile {
     }
 
     // -----------------------------------------------------------------------
-    // Cumulative (total) values per function — across all samples containing funcName
+    // Cumulative (total) values per function — across all samples containing funcFullName
     // -----------------------------------------------------------------------
 
     /**
-     * Cumulative allocated objects (count) of samples whose call stack contains `funcName`.
+     * Cumulative allocated objects (count) of samples whose call stack contains `funcFullName`.
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt allocObjectsOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt allocObjectsOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName)
+            sample.containsFunc(funcFullName)
             | sample.getValue(0)
         )
     }
 
     /**
-     * Cumulative allocated space (bytes) of samples whose call stack contains `funcName`.
+     * Cumulative allocated space (bytes) of samples whose call stack contains `funcFullName`.
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt allocSpaceOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt allocSpaceOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName)
+            sample.containsFunc(funcFullName)
             | sample.getValue(1)
         )
     }
 
     /**
-     * Cumulative in-use objects (count) of samples whose call stack contains `funcName`.
+     * Cumulative in-use objects (count) of samples whose call stack contains `funcFullName`.
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt inuseObjectsOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt inuseObjectsOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName)
+            sample.containsFunc(funcFullName)
             | sample.getValue(2)
         )
     }
 
     /**
-     * Cumulative in-use space (bytes) of samples whose call stack contains `funcName`.
+     * Cumulative in-use space (bytes) of samples whose call stack contains `funcFullName`.
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt inuseSpaceOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt inuseSpaceOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName)
+            sample.containsFunc(funcFullName)
             | sample.getValue(3)
         )
     }
 
     // -----------------------------------------------------------------------
-    // Flat / self-value per function — only samples where funcName is at location[0]
+    // Flat / self-value per function — only samples where funcFullName is at location[0]
     // -----------------------------------------------------------------------
 
     /**
-     * Flat (self) allocated objects (count) of `funcName`: only samples where `funcName`
+     * Flat (self) allocated objects (count) of `funcFullName`: only samples where `funcFullName`
      * is at the top of the stack (location index 0).
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt allocObjectsFlatOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt allocObjectsFlatOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.getLocation(0).getLine(_).getFunction().getName() = funcName
+            sample.containsFunc(funcFullName) and
+            sample.getLocation(0).getLine(_).getFunction().getName() = funcFullName
             | sample.getValue(0)
         )
     }
 
     /**
-     * Flat (self) allocated space (bytes) of `funcName`: only samples where `funcName`
+     * Flat (self) allocated space (bytes) of `funcFullName`: only samples where `funcFullName`
      * is at the top of the stack (location index 0).
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt allocSpaceFlatOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt allocSpaceFlatOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.getLocation(0).getLine(_).getFunction().getName() = funcName
+            sample.containsFunc(funcFullName) and
+            sample.getLocation(0).getLine(_).getFunction().getName() = funcFullName
             | sample.getValue(1)
         )
     }
 
     /**
-     * Flat (self) in-use objects (count) of `funcName`: only samples where `funcName`
+     * Flat (self) in-use objects (count) of `funcFullName`: only samples where `funcFullName`
      * is at the top of the stack (location index 0).
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt inuseObjectsFlatOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt inuseObjectsFlatOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.getLocation(0).getLine(_).getFunction().getName() = funcName
+            sample.containsFunc(funcFullName) and
+            sample.getLocation(0).getLine(_).getFunction().getName() = funcFullName
             | sample.getValue(2)
         )
     }
 
     /**
-     * Flat (self) in-use space (bytes) of `funcName`: only samples where `funcName`
+     * Flat (self) in-use space (bytes) of `funcFullName`: only samples where `funcFullName`
      * is at the top of the stack (location index 0).
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt inuseSpaceFlatOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt inuseSpaceFlatOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.getLocation(0).getLine(_).getFunction().getName() = funcName
+            sample.containsFunc(funcFullName) and
+            sample.getLocation(0).getLine(_).getFunction().getName() = funcFullName
             | sample.getValue(3)
         )
     }
@@ -198,39 +198,39 @@ class HeapProfile instanceof Profile {
     // -----------------------------------------------------------------------
 
     /**
-     * Percentage of allocated objects for `funcName` relative to total allocated objects,
+     * Percentage of allocated objects for `funcFullName` relative to total allocated objects,
      * with `precision` decimal places.
      */
-    bindingset[funcName, precision]
-    float allocObjectsPercent(string funcName, int precision) {
-        result = percent(allocObjectsOfFunc(funcName), allocObjectsSum(), precision)
+    bindingset[funcFullName, precision]
+    float allocObjectsPercent(string funcFullName, int precision) {
+        result = percent(allocObjectsOfFunc(funcFullName), allocObjectsSum(), precision)
     }
 
     /**
-     * Percentage of allocated space for `funcName` relative to total allocated space,
+     * Percentage of allocated space for `funcFullName` relative to total allocated space,
      * with `precision` decimal places.
      */
-    bindingset[funcName, precision]
-    float allocSpacePercent(string funcName, int precision) {
-        result = percent(allocSpaceOfFunc(funcName), allocSpaceSum(), precision)
+    bindingset[funcFullName, precision]
+    float allocSpacePercent(string funcFullName, int precision) {
+        result = percent(allocSpaceOfFunc(funcFullName), allocSpaceSum(), precision)
     }
 
     /**
-     * Percentage of in-use objects for `funcName` relative to total in-use objects,
+     * Percentage of in-use objects for `funcFullName` relative to total in-use objects,
      * with `precision` decimal places.
      */
-    bindingset[funcName, precision]
-    float inuseObjectsPercent(string funcName, int precision) {
-        result = percent(inuseObjectsOfFunc(funcName), inuseObjectsSum(), precision)
+    bindingset[funcFullName, precision]
+    float inuseObjectsPercent(string funcFullName, int precision) {
+        result = percent(inuseObjectsOfFunc(funcFullName), inuseObjectsSum(), precision)
     }
 
     /**
-     * Percentage of in-use space for `funcName` relative to total in-use space,
+     * Percentage of in-use space for `funcFullName` relative to total in-use space,
      * with `precision` decimal places.
      */
-    bindingset[funcName, precision]
-    float inuseSpacePercent(string funcName, int precision) {
-        result = percent(inuseSpaceOfFunc(funcName), inuseSpaceSum(), precision)
+    bindingset[funcFullName, precision]
+    float inuseSpacePercent(string funcFullName, int precision) {
+        result = percent(inuseSpaceOfFunc(funcFullName), inuseSpaceSum(), precision)
     }
 
     // -----------------------------------------------------------------------
@@ -238,25 +238,25 @@ class HeapProfile instanceof Profile {
     // -----------------------------------------------------------------------
 
     /**
-     * Cumulative allocated space (bytes) of `funcName` at a specific `lineNumber`.
+     * Cumulative allocated space (bytes) of `funcFullName` at a specific `lineNumber`.
      */
-    bindingset[funcName, lineNumber]
-    QlBuiltins::BigInt allocSpaceOfLine(string funcName, int lineNumber) {
+    bindingset[funcFullName, lineNumber]
+    QlBuiltins::BigInt allocSpaceOfLine(string funcFullName, int lineNumber) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsLine(funcName, lineNumber)
+            sample.containsLine(funcFullName, lineNumber)
             | sample.getValue(1)
         )
     }
 
     /**
-     * Cumulative in-use space (bytes) of `funcName` at a specific `lineNumber`.
+     * Cumulative in-use space (bytes) of `funcFullName` at a specific `lineNumber`.
      */
-    bindingset[funcName, lineNumber]
-    QlBuiltins::BigInt inuseSpaceOfLine(string funcName, int lineNumber) {
+    bindingset[funcFullName, lineNumber]
+    QlBuiltins::BigInt inuseSpaceOfLine(string funcFullName, int lineNumber) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsLine(funcName, lineNumber)
+            sample.containsLine(funcFullName, lineNumber)
             | sample.getValue(3)
         )
     }
@@ -266,29 +266,29 @@ class HeapProfile instanceof Profile {
     // -----------------------------------------------------------------------
 
     /**
-     * Allocated space (bytes) of `funcName` in the call context of `focusFuncName`.
+     * Allocated space (bytes) of `funcFullName` in the call context of `focusfuncFullName`.
      * Only samples that contain both functions are counted.
      */
-    bindingset[funcName, focusFuncName]
-    QlBuiltins::BigInt allocSpaceUnderFunc(string funcName, string focusFuncName) {
+    bindingset[funcFullName, focusfuncFullName]
+    QlBuiltins::BigInt allocSpaceUnderFunc(string funcFullName, string focusfuncFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.containsFunc(focusFuncName)
+            sample.containsFunc(funcFullName) and
+            sample.containsFunc(focusfuncFullName)
             | sample.getValue(1)
         )
     }
 
     /**
-     * In-use space (bytes) of `funcName` in the call context of `focusFuncName`.
+     * In-use space (bytes) of `funcFullName` in the call context of `focusfuncFullName`.
      * Only samples that contain both functions are counted.
      */
-    bindingset[funcName, focusFuncName]
-    QlBuiltins::BigInt inuseSpaceUnderFunc(string funcName, string focusFuncName) {
+    bindingset[funcFullName, focusfuncFullName]
+    QlBuiltins::BigInt inuseSpaceUnderFunc(string funcFullName, string focusfuncFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName) and
-            sample.containsFunc(focusFuncName)
+            sample.containsFunc(funcFullName) and
+            sample.containsFunc(focusfuncFullName)
             | sample.getValue(3)
         )
     }
@@ -298,16 +298,16 @@ class HeapProfile instanceof Profile {
     // -----------------------------------------------------------------------
 
     /**
-     * Average block size (bytes) of samples whose call stack contains `funcName`.
+     * Average block size (bytes) of samples whose call stack contains `funcFullName`.
      * Block size is derived from the "bytes" label on each heap sample,
      * which represents AllocBytes / AllocObjects per sample. Returns the sum
      * of block sizes across all matching samples.
      */
-    bindingset[funcName]
-    QlBuiltins::BigInt blockSizeSumOfFunc(string funcName) {
+    bindingset[funcFullName]
+    QlBuiltins::BigInt blockSizeSumOfFunc(string funcFullName) {
         result = sum(Sample sample
             | super.getSample(_) = sample and
-            sample.containsFunc(funcName)
+            sample.containsFunc(funcFullName)
             | getBlockSize(sample)
         )
     }
