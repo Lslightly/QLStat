@@ -1,0 +1,64 @@
+logRoot: logs
+repoRoot: repos # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+
+# clone
+sources:
+  - prefix: https://test/ # clone url prefix
+    fullnames:
+      # - aliasFieldAcc
+      # - assignToInterface
+      # - convInterface
+      # - CWE-369
+      # - CWE-400
+      # - CWE-525
+      # - CWE-807
+      - malloc_test
+      # - intraResourceLeak
+      # - memacc
+      # - memStatSliceExprSetNil
+      # - pkgcall
+      # - pkgtest
+      # - sliceExprNotSetNil
+
+# build
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildGrps:
+- buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+    - malloc_test
+  buildCmd: yaml-examples/build/malloc_test.sh
+  extgenScript: yaml-examples/extgens/malloc_test.sh
+
+# query
+queryconfig:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  parallelCore: 20 # parallel cores to run query
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  queryGrps:
+    - queryDBs:
+        - malloc_test
+      queries:
+        # Profile associations
+        - pprof_ext/heapprofile_unittests/0.ql
+        - pprof_ext/heapprofile_unittests/1.ql
+        - pprof_ext/heapprofile_unittests/2.ql
+        - pprof_ext/heapprofile_unittests/3.ql
+        - pprof_ext/heapprofile_unittests/4.ql
+        - pprof_ext/heapprofile_unittests/5.ql
+        - pprof_ext/heapprofile_unittests/6.ql
+        - pprof_ext/heapprofile_unittests/7.ql
+        - pprof_ext/heapprofile_unittests/8.ql
+        - pprof_ext/heapprofile_unittests/9.ql
+        - pprof_ext/heapprofile_unittests/10.ql
+        - pprof_ext/heapprofile_unittests/11.ql
+        - pprof_ext/heapprofile_unittests/12.ql
+        - pprof_ext/heapprofile_unittests/13.ql
+        - pprof_ext/heapprofile_unittests/14.ql
+        - pprof_ext/heapprofile_unittests/15.ql
+        - pprof_ext/heapprofile_unittests/16.ql
+        - pprof_ext/heapprofile_unittests/17.ql
+        - pprof_ext/heapprofile_unittests/18.ql
+      externalFiles:
+        - yaml-template/pprof.yaml
+
