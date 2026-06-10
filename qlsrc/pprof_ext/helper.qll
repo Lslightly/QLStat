@@ -14,3 +14,11 @@ bindingset[numerator, denominator, precision]
 float divBigInt(QlBuiltins::BigInt numerator, QlBuiltins::BigInt denominator, int precision) {
     result = (((10.toBigInt().pow(precision+1)) * numerator / denominator+5.toBigInt())/10.toBigInt()).toString().toFloat()/10.pow(precision)
 }
+
+/**
+ * funcFullName returns pkgPath+"."+funcName
+ */
+bindingset[pkgPath, funcName]
+string funcFullName(string pkgPath, string funcName) {
+    result = pkgPath+"."+funcName
+}
