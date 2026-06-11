@@ -189,6 +189,8 @@ class Sample instanceof int {
      * [profile.proto:117](../../doc/adapters/pprof/profile.proto#L117)
      */
     Location getLocation(int index) { sample_to_location_id(this, index, result) }
+    int locationNum() { result = max(int index, Location loc| loc = getLocation(index) | index) + 1 }
+    Location getLastLocation() { result = getLocation(locationNum()-1) }
 
     /**
      * The type and unit of each value is defined by the corresponding
@@ -380,6 +382,8 @@ class Location instanceof int {
      * the last index is the outermost caller.
      */
     Line getLine(int index) { location_to_line(this, index, result) }
+    int lineNum() { result = max(int index, Line line | getLine(index) = line | index)+1 }
+    Line getLastLine() { result = getLine(lineNum()-1) }
 
     /** Returns the mapping this location belongs to. */
     Mapping getMapping() { result = mapping_id }
@@ -438,4 +442,9 @@ class Function instanceof int {
 
     /** Line number in source file. */
     int getStartLine() { result = start_line }
+}
+
+bindingset[s]
+string pkgpath(string s) {
+    result = s.splitAt(".", 0)
 }
