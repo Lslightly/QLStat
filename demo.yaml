@@ -3,9 +3,10 @@ repoRoot: repos           # stores all cloned source repositories
 dbRoot: codeql-db         # stores all CodeQL databases, dbRoot/<dbName>/
 
 # source repositories to clone
-sources:
-  - prefix: https://github.com/
-    fullnames:
+repositories:
+  - urlPrefix: https://github.com/
+    dir: github.com
+    repos:
       - rclone/rclone 28c187b       # optional branch/commit
       - cloudwego/kitex
       - Lslightly/dolt heapvar_should_move

@@ -127,9 +127,8 @@ func buildDirSetup(cfg *config.Artifact) (*os.File, *os.File) {
 	logFile := utils.CreateFile(logFilePath)
 	defer logFile.Close()
 
-	for _, gs := range cfg.Sources {
-		hostdir := gs.HostDir(cfg.RepoRoot)
-		utils.MkdirAll(filepath.Join(hostdir))
+	for _, rg := range cfg.Repositories {
+		rg.CreateRepoRootDir(cfg.RepoRoot)
 	}
 	return csvFile, logFile
 }

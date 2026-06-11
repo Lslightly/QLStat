@@ -1,0 +1,32 @@
+logRoot: logs
+repoRoot: /home/lqw/mygit/research/proj/Golang # repoRoot stores all repositories
+dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
+
+# clone
+repositories:
+  - repos:
+    - actor-demo
+
+# build
+language: go # language to analyze
+buildTimeout: 3600 # timeout for building repository
+buildGrps:
+- buildRepos: # "*" means all repositories. "-" means all repositories defined in the "repositories" section. You can also specify fullname of repositories to force re-build.
+    - actor-demo
+  buildCmd: yaml-examples/build/actor-demo.sh
+  extgenScript: yaml-examples/extgens/actor-demo.sh
+
+# query
+queryconfig:
+  resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
+  parallelCore: 20 # parallel cores to run query
+  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
+  queryGrps:
+    - queryDBs:
+        - actor-demo
+      queries:
+        - pprof_ext/cpu_flamegraph_root_cum_desc.ql
+        - pprof_ext/cpu_func_cum_desc.ql
+        - pprof_ext/cpu_func_flat_desc.ql
+      externalFiles:
+        - yaml-template/pprof.yaml

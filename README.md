@@ -31,7 +31,7 @@ QLStat provides a comprehensive framework for large-scale empirical analysis of 
 
 Create your `stat.yaml` config file according to [`example.yaml`](./example.yaml), [`demo.yaml`](./demo.yaml) or YAML files in [`yaml-examples/`](./yaml-examples/). The configuration supports several key sections:
 
-- `sources`: Define repository sources with prefixes and specific repositories
+- `repositories`: Define repositories with URL prefixes and optional directory layout
 - `language`: Specify the programming language for analysis (e.g., go)
 - `buildGrps`: Configure build groups with timeout, build commands, and optional extgen scripts
 - `queryconfig`: Set up query execution with parallelization options
