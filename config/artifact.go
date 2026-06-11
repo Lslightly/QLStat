@@ -52,6 +52,26 @@ func UnmarshalArtifact(filename string) *Artifact {
 	if err := yaml.Unmarshal(data, cfg); err != nil {
 		log.Fatalf("Failed to parse YAML: %v", err)
 	}
+	if cfg.LogRoot == "" {
+		cfg.LogRoot = filepath.Join(utils.ProjectRoot(), "logs")
+		log.Println("\033[33mWARNING: logRoot is empty, set to default value:", cfg.LogRoot, "\033[0m")
+	}
+	if cfg.RepoRoot == "" {
+		cfg.RepoRoot = filepath.Join(utils.ProjectRoot(), "repos")
+		log.Println("\033[33mWARNING: repoRoot is empty, set to default value:", cfg.RepoRoot, "\033[0m")
+	}
+	if cfg.DBRoot == "" {
+		cfg.DBRoot = filepath.Join(utils.ProjectRoot(), "codeql-db")
+		log.Println("\033[33mWARNING: dbRoot is empty, set to default value:", cfg.DBRoot, "\033[0m")
+	}
+	if cfg.ResultRoot == "" {
+		cfg.ResultRoot = filepath.Join(utils.ProjectRoot(), "codeqlResult")
+		log.Println("\033[33mWARNING: resultRoot is empty, set to default value:", cfg.ResultRoot, "\033[0m")
+	}
+	if cfg.QueryRoot == "" {
+		cfg.QueryRoot = filepath.Join(utils.ProjectRoot(), "qlsrc")
+		log.Println("\033[33mWARNING: queryRoot is empty, set to default value:", cfg.QueryRoot, "\033[0m")
+	}
 	return cfg
 }
 
