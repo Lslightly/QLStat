@@ -1,4 +1,5 @@
 #!/bin/bash -x
+## Run in project root
 
 function splitline {
     echo "-----------------"
@@ -20,7 +21,7 @@ fi
 splitline
 echo "External Verify Test"
 
-go run ./cmd/batch_clone_build yaml-examples/malloc_test.yaml
+go run ./cmd/batch_clone_build ci/malloc_test.yaml
 # check number of lines in pprof ext csv file is equal to count of external predicates
 if ! go run ./cmd/pprof-external-verify codeql-db/malloc_test/ use_ext_directly_count ; then
     echo "External Verify Test(use_ext_directly_count) for malloc_test Failed"
@@ -32,7 +33,7 @@ if ! go run ./cmd/pprof-external-verify codeql-db/malloc_test/ instance_count ; 
     exit 1
 fi
 
-go run ./cmd/codeql_qdriver -collect yaml-examples/malloc_test.yaml
+go run ./cmd/codeql_qdriver -collect ci/malloc_test.yaml
 # check mallocgc time is mapped to CodeQL class instances
 malloc_time_csv="codeqlResult/pprof_ext/malloc_time/malloc_test.csv"
 if [ ! -f "$malloc_time_csv" ]; then

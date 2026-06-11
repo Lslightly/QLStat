@@ -30,7 +30,7 @@ jobs:
           echo "Adding $CODEQL_DIR to PATH"
       - name: Test
         run: |
-          ./check.sh
+          ./scripts/ci.sh
       - name: Setup tmate session # see https://github.com/mxschmitt/action-tmate#only-on-failure
         uses: mxschmitt/action-tmate@v3
         if: ${{ failure() }}
