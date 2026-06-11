@@ -1,4 +1,5 @@
 #!/bin/bash
+## Script for issue https://github.com/github/codeql/issues/21961
 # Execute the script in the project root directory
 
 # The steps in the shell script are internal steps of two commands. (You don't need care these two commands actually)
