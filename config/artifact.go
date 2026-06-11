@@ -42,8 +42,8 @@ type QueryGroup struct {
 	ExternalFiles []string `yaml:"externalFiles"`
 }
 
-// ReadExternalFiles reads filename and returns a slice of non-empty external predicates' names defined in the file
-func ReadExternalFiles(filename string) (externals []string, err error) {
+// ReadExtsFromFile reads filename and returns a slice of non-empty external predicates' names defined in the file
+func ReadExtsFromFile(filename string) (externals []string, err error) {
 	var exts []string
 	bs, err := os.ReadFile(filename)
 	if err != nil {

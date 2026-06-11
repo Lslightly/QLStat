@@ -89,19 +89,6 @@ func parseConfig() {
 	if err != nil {
 		log.Fatalln("error occurs when parsing json", err)
 	}
-	for i := range cfg.QueryGrps {
-		grp := &cfg.QueryGrps[i]
-		if len(grp.ExternalFiles) == 0 {
-			continue
-		}
-		for _, extf := range grp.ExternalFiles {
-			exts, err := config.ReadExternalFiles(extf)
-			if err != nil {
-				log.Fatalln("error occurs when reading external file", extf, err)
-			}
-			grp.Externals = append(grp.Externals, exts...)
-		}
-	}
 }
 
 type ErrorPair struct {
@@ -123,7 +110,7 @@ func queriesExec(grp config.QueryGroup) {
 	dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
 	bar := progressbar.Default(int64(len(dbs) * len(grp.Queries)))
 	for _, qScript := range grp.Queries {
-		query := config.CreateQuery(qScript, grp.Externals)
+		query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 
 		queryLogDir := path.Join(cfg.PassLogDir("query"), query.PathNoExt())
 		utils.MkdirAll(queryLogDir)
@@ -135,7 +122,7 @@ func queriesExec(grp config.QueryGroup) {
 			go func(db config.DB, query config.Query) {
 				defer wg.Done()
 				queryForOneDB(db, query)
-				bar.Describe(fmt.Sprintf("%-15s %-15s", query.Name(), db.Name))
+				bar.Describe(fmt.Sprintf("query: %-15s db: %-15s exts: %-15s", query.Name(), db.Name, query.ExternalsSingleString()))
 				bar.Add(1)
 			}(db, query)
 		}
@@ -173,7 +160,6 @@ func queryForOneDB(db config.DB, query config.Query) {
 			query.ExternalOptions(db.ExtDir())...,
 		)...,
 	)
-	fmt.Println(cmd.String())
 	cmd.Stdout = repoOut
 	cmd.Stderr = repoErr
 	repoOut.WriteString(cmd.String() + "\n")
@@ -204,7 +190,7 @@ func decodeResults(tgtFmt string) {
 		defer bar.Close()
 		for _, qScript := range queries {
 			bar.Add(1)
-			query := config.CreateQuery(qScript, grp.Externals)
+			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 			bar.Describe(fmt.Sprintf("Grp %d: Decoding %s dir", grpi, query.Name()))
 			decodeFilesInDir(tgtFmt, query)
 		}
@@ -246,7 +232,7 @@ func collectCSVs() {
 	for grpi, grp := range cfg.QueryGrps {
 		bar := progressbar.Default(int64(len(grp.Queries)))
 		for _, qScript := range grp.Queries {
-			query := config.CreateQuery(qScript, grp.Externals)
+			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 			bar.Describe(fmt.Sprintf("Grp %d: Collecting for "+query.PathNoExt(), grpi))
 			collectCSVsForQuery(query)
 			bar.Add(1)
