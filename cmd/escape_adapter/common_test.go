@@ -9,7 +9,3 @@ import (
 func testdatadir() string {
 	return filepath.Join(utils.CurFileDir(), "testdata")
 }
-
-func codeqlResultDir() string {
-	return filepath.Join(utils.ProjectRoot(), "codeqlResult")
-}

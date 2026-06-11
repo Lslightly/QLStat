@@ -71,7 +71,7 @@ func TestCodeQLMovedToHeap3(t *testing.T) {
 }
 
 func moved_to_heap_var_test(t *testing.T) {
-	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/moved_to_heap_var_test/escape.csv")
+	csvPath := filepath.Join(utils.ProjectRoot(), "codeql-db/escape/results/lslightly/qlstat/escape_ext/moved_to_heap_var_test.csv")
 	f, err := os.Open(csvPath)
 	assert.Nil(t, err)
 	reader := csv.NewReader(f)
@@ -82,7 +82,7 @@ func moved_to_heap_var_test(t *testing.T) {
 }
 
 func inlined_var_test(t *testing.T) {
-	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/inlined_var_test/false-sharing.csv")
+	csvPath := filepath.Join(utils.ProjectRoot(), "codeql-db/false-sharing/results/lslightly/qlstat/escape_ext/inlined_var_test.csv")
 	f, err := os.Open(csvPath)
 	assert.Nil(t, err)
 	reader := csv.NewReader(f)
@@ -93,7 +93,7 @@ func inlined_var_test(t *testing.T) {
 }
 
 func ref_in_go_test(t *testing.T) {
-	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/ref_in_go_test/false-sharing.csv")
+	csvPath := filepath.Join(utils.ProjectRoot(), "codeql-db/false-sharing/results/lslightly/qlstat/escape_ext/ref_in_go_test.csv")
 	f, err := os.Open(csvPath)
 	assert.Nil(t, err)
 	reader := csv.NewReader(f)
@@ -104,7 +104,7 @@ func ref_in_go_test(t *testing.T) {
 }
 
 func heapvar_use_in_go_test(t *testing.T) {
-	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/heapvar_use_in_go_test/false-sharing.csv")
+	csvPath := filepath.Join(utils.ProjectRoot(), "codeql-db/false-sharing/results/lslightly/qlstat/escape_ext/heapvar_use_in_go_test.csv")
 	f, err := os.Open(csvPath)
 	assert.Nil(t, err)
 	reader := csv.NewReader(f)
@@ -115,7 +115,7 @@ func heapvar_use_in_go_test(t *testing.T) {
 }
 
 func same_scope_go_ref_heapvar_test(t *testing.T) {
-	csvPath := filepath.Join(codeqlResultDir(), "escape_ext/same_scope_go_ref_heapvar_test/false-sharing.csv")
+	csvPath := filepath.Join(utils.ProjectRoot(), "codeql-db/false-sharing/results/lslightly/qlstat/escape_ext/same_scope_go_ref_heapvar_test.csv")
 	f, err := os.Open(csvPath)
 	assert.Nil(t, err)
 	reader := csv.NewReader(f)
