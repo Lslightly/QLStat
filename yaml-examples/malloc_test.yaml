@@ -6,21 +6,8 @@ dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by rep
 sources:
   - prefix: https://test/ # clone url prefix
     fullnames:
-      # - aliasFieldAcc
-      # - assignToInterface
-      # - convInterface
-      # - CWE-369
-      # - CWE-400
-      # - CWE-525
-      # - CWE-807
       - malloc_test
       - batchmalloc
-      # - intraResourceLeak
-      # - memacc
-      # - memStatSliceExprSetNil
-      # - pkgcall
-      # - pkgtest
-      # - sliceExprNotSetNil
 
 # build
 language: go # language to analyze
@@ -52,7 +39,7 @@ queryconfig:
       queries:
         - pprof_ext/malloc_time.ql
         - pprof_ext/malloc_line.ql
-        - pprof_ext/heap_test.ql
+        - pprof_ext/flamegraph_root_cum_desc.ql
       externals:
         - queryLine
       externalFiles:
