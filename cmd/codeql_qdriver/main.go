@@ -154,7 +154,7 @@ codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --
 */
 func queryForOneDB(db config.DB, query config.Query) {
 	qResultDir := query.DirPath(cfg.ResultRoot)
-	repoOut, repoErr := utils.CreateOutAndErr(filepath.Join(cfg.PassLogDir("query"), db.Name))
+	repoOut, repoErr := utils.CreateOutAndErr(filepath.Join(query.DirPath(cfg.PassLogDir("query")), db.Name))
 	defer repoOut.Close()
 	defer repoErr.Close()
 
