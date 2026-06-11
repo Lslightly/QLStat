@@ -61,14 +61,15 @@ func main() {
 		}
 		for grpi, grp := range cfg.QueryGrps {
 			fmt.Printf("Grp %d: Executing queries\n", grpi)
-			queriesExec(cfg, grp)
+			queriesExec(cfg, grp, targetDecodeFmt)
 		}
+	} else {
+		fmt.Println("Decoding results")
+		if _, err := config.ArchiveCurrentIfExist(cfg, "decode"); err != nil {
+			log.Fatalf("Failed to archive current log dir: %v", err)
+		}
+		decodeResults(cfg, targetDecodeFmt)
 	}
-	fmt.Println("Decoding results")
-	if _, err := config.ArchiveCurrentIfExist(cfg, "decode"); err != nil {
-		log.Fatalf("Failed to archive current log dir: %v", err)
-	}
-	decodeResults(cfg, targetDecodeFmt)
 	if doCollect && targetDecodeFmt == "csv" {
 		fmt.Println("Collecting CSVs")
 		collectCSVs(cfg)
@@ -90,7 +91,7 @@ first remove all content in ${config.OutResultRoot}/${qScriptNameNoExt}
 dump error log for ${db} in ${config.OutResultRoot}/${qScriptNameNoExt}/error.log
 dump stdout/stderr for ${db} in ${config.OutResultRoot}/${qScriptNameNoExt}/log/${db}.log
 */
-func queriesExec(cfg *config.Artifact, grp config.QueryGroup) {
+func queriesExec(cfg *config.Artifact, grp config.QueryGroup, tgtFmt string) {
 	dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
 	bar := progressbar.Default(int64(len(dbs) * len(grp.Queries)))
 	for _, qScript := range grp.Queries {
@@ -100,11 +101,11 @@ func queriesExec(cfg *config.Artifact, grp config.QueryGroup) {
 		utils.MkdirAll(queryLogDir)
 		utils.Remkdir(query.DirPath(cfg.ResultRoot))
 
-		var wg sync.WaitGroup
+		var dbWg sync.WaitGroup
 		for _, db := range dbs {
-			wg.Add(1)
+			dbWg.Add(1)
 			go func(db config.DB, query config.Query) {
-				defer wg.Done()
+				defer dbWg.Done()
 				queryForOneDB(cfg, db, query)
 				bar.Describe(fmt.Sprintf("query: %-15s db: %-15s exts: %-15s", query.Name(), db.Name, query.ExternalsSingleString()))
 				bar.Add(1)
@@ -115,7 +116,8 @@ func queriesExec(cfg *config.Artifact, grp config.QueryGroup) {
 			`codeql database run-queries` supports multiple queries.
 			But work to collect results from codeql-db/<db>/results is needed
 		*/
-		wg.Wait()
+		dbWg.Wait()
+		decodeFilesInDir(cfg, tgtFmt, query)
 	}
 	bar.Close()
 }
