@@ -22,3 +22,11 @@ bindingset[pkgPath, funcName]
 string funcFullName(string pkgPath, string funcName) {
     result = pkgPath+"."+funcName
 }
+
+/**
+ * return funcName part of pkgPath+"."+funcName
+ */
+bindingset[fullname]
+string funcNamePart(string fullname) {
+    result = fullname.suffix(fullname.splitAt(".", 0).length()+1)
+}

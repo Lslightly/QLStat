@@ -108,5 +108,11 @@ class CPUProfile extends Profile {
             | sample.getLocation(sample.locationNum()-1).getLastLine().getFunction().getName() = result
         )
     }
+
+    predicate containsFunc(string funcFullName) {
+        exists(Sample sample |
+            sample.containsFunc(funcFullName)
+        )
+    }
 }
 
