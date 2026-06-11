@@ -2,20 +2,17 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"runtime"
 	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/Lslightly/qlstat/config"
 	"github.com/Lslightly/qlstat/utils"
@@ -76,14 +73,90 @@ func main() {
 	}
 }
 
-type ErrorPair struct {
-	runErr    string
-	decodeErr error
+// -- External args helper ------------------------------------------------
+
+// buildGroupExternalArgs collects all --external=... options across all queries.
+// Since externals are defined at the QueryGroup level, all queries share them,
+// but we deduplicate to be safe.
+func buildGroupExternalArgs(queries []config.Query, extroot string) []string {
+	seen := make(map[string]bool)
+	var result []string
+	for _, q := range queries {
+		for _, ext := range q.ExternalOptions(extroot) {
+			if !seen[ext] {
+				seen[ext] = true
+				result = append(result, ext)
+			}
+		}
+	}
+	return result
 }
 
-type QueryStatus struct {
-	repo string
-	pair ErrorPair
+// -- Query execution -----------------------------------------------------
+
+// runQueriesOnDB runs all queries on a single database using codeql database run-queries,
+// then decodes the resulting bqrs files to the target format.
+//
+// Command:
+//
+//	codeql database run-queries --search-path=... --external=... -- <dbPath> <query1> <query2> ...
+//
+// Results are placed at <dbPath>/results/<queryPack>/<queryPathNoExt>.bqrs.
+// Decoded output goes to <dbPath>/results/<queryPack>/<queryPathNoExt>.<tgtFmt>.
+func runQueriesOnDB(cfg *config.Artifact, db config.DB, queries []config.Query, tgtFmt string) {
+	// --- Phase 1: run-queries ---
+	extArgs := buildGroupExternalArgs(queries, db.ExtDir())
+
+	queryPaths := make([]string, len(queries))
+	for i, q := range queries {
+		queryPaths[i] = q.QueryPath(cfg.QueryRoot)
+	}
+
+	logDir := filepath.Join(cfg.PassLogDir("query"), db.Name)
+	utils.MkdirAll(logDir)
+	outFile, errFile := utils.CreateOutAndErr(filepath.Join(logDir, "run-queries"))
+	defer outFile.Close()
+	defer errFile.Close()
+
+	args := []string{
+		"database", "run-queries",
+		"--search-path=" + filepath.Join(utils.ProjectRoot(), "qlsrc/lib"),
+	}
+	args = append(args, extArgs...)
+	args = append(args, "--")
+	args = append(args, db.Path())
+	args = append(args, queryPaths...)
+
+	cmd := exec.Command("codeql", args...)
+	cmd.Stdout = outFile
+	cmd.Stderr = errFile
+	outFile.WriteString(cmd.String() + "\n")
+	if err := cmd.Run(); err != nil {
+		fmt.Fprintf(errFile, "codeql database run-queries failed: %v\n", err)
+	}
+
+	// --- Phase 2: decode bqrs to target format ---
+	decodeLogDir := filepath.Join(cfg.PassLogDir("decode"), db.Name)
+	utils.MkdirAll(decodeLogDir)
+
+	for _, query := range queries {
+		bqrsPath := filepath.Join(db.Path(), "results/lslightly/qlstat", query.PathNoExt()+".bqrs")
+		csvPath := filepath.Join(db.Path(), "results/lslightly/qlstat", query.PathNoExt()+"."+tgtFmt)
+
+		decOut, decErr := utils.CreateOutAndErr(filepath.Join(decodeLogDir, query.Name()))
+		cmd := exec.Command("codeql", "bqrs", "decode",
+			"--format="+tgtFmt,
+			bqrsPath,
+			"--output="+csvPath)
+		cmd.Stdout = decOut
+		cmd.Stderr = decErr
+		decOut.WriteString(cmd.String() + "\n")
+		if err := cmd.Run(); err != nil {
+			fmt.Fprintf(decErr, "codeql bqrs decode failed: %v\n", err)
+		}
+		decOut.Close()
+		decErr.Close()
+	}
 }
 
 /*
@@ -93,67 +166,31 @@ dump stdout/stderr for ${db} in ${config.OutResultRoot}/${qScriptNameNoExt}/log/
 */
 func queriesExec(cfg *config.Artifact, grp config.QueryGroup, tgtFmt string) {
 	dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
-	bar := progressbar.Default(int64(len(dbs) * len(grp.Queries)))
-	for _, qScript := range grp.Queries {
-		query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 
-		queryLogDir := path.Join(cfg.PassLogDir("query"), query.PathNoExt())
-		utils.MkdirAll(queryLogDir)
-		utils.Remkdir(query.DirPath(cfg.ResultRoot))
-
-		var dbWg sync.WaitGroup
-		for _, db := range dbs {
-			dbWg.Add(1)
-			go func(db config.DB, query config.Query) {
-				defer dbWg.Done()
-				queryForOneDB(cfg, db, query)
-				bar.Describe(fmt.Sprintf("query: %-15s db: %-15s exts: %-15s", query.Name(), db.Name, query.ExternalsSingleString()))
-				bar.Add(1)
-			}(db, query)
-		}
-		/*
-			currently multiple queries for one database is not supported
-			`codeql database run-queries` supports multiple queries.
-			But work to collect results from codeql-db/<db>/results is needed
-		*/
-		dbWg.Wait()
-		decodeFilesInDir(cfg, tgtFmt, query)
+	// Create Query objects for all queries in the group
+	queries := make([]config.Query, len(grp.Queries))
+	for i, qScript := range grp.Queries {
+		queries[i] = config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 	}
+
+	bar := progressbar.Default(int64(len(dbs)))
+	var wg sync.WaitGroup
+
+	for _, db := range dbs {
+		wg.Add(1)
+		go func(db config.DB) {
+			defer wg.Done()
+			runQueriesOnDB(cfg, db, queries, tgtFmt)
+			bar.Describe(fmt.Sprintf("db: %-20s %d queries", db.Name, len(queries)))
+			bar.Add(1)
+		}(db)
+	}
+
+	wg.Wait()
 	bar.Close()
 }
 
-/*
-codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --output=${qResultDir}/${repo} --search-path=./qlsrc/lib --external=$pred/${config.dbRoot}/${repo}/ext/$pred.csv
-*/
-func queryForOneDB(cfg *config.Artifact, db config.DB, query config.Query) {
-	qResultDir := query.DirPath(cfg.ResultRoot)
-	repoOut, repoErr := utils.CreateOutAndErr(filepath.Join(query.DirPath(cfg.PassLogDir("query")), db.Name))
-	defer repoOut.Close()
-	defer repoErr.Close()
-
-	ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Minute)
-	defer cancel()
-
-	cmd := exec.CommandContext(ctx, "codeql",
-		append([]string{
-			"query",
-			"run",
-			fmt.Sprintf("-d=%s", db.Path()),
-			fmt.Sprintf("--search-path=%s", filepath.Join(cfg.QueryRoot, "lib")),
-			query.QueryPath(cfg.QueryRoot),
-			fmt.Sprintf("--output=%s", filepath.Join(qResultDir, db.Name)+".bqrs"),
-		},
-			query.ExternalOptions(db.ExtDir())...,
-		)...,
-	)
-	cmd.Stdout = repoOut
-	cmd.Stderr = repoErr
-	repoOut.WriteString(cmd.String() + "\n")
-	// TODO report errors in query
-	_ = cmd.Run()
-	repoOut.Sync()
-	repoErr.Sync()
-}
+// -- Decoding ------------------------------------------------------------
 
 func checkDecodeTargetFmt(tgtFmt string) bool {
 	if slices.Contains(validFmts, tgtFmt) {
@@ -164,55 +201,46 @@ func checkDecodeTargetFmt(tgtFmt string) bool {
 }
 
 /*
-codeql bqrs decode --format=${tgtFmt} ${path}/${fileBase}.bqrs --output=${path}/${fileBase}.${tgtFmt}
+codeql bqrs decode --format=${tgtFmt} ${dbPath}/results/lslightly/qlstat/${queryPathNoExt}.bqrs --output=${dbPath}/results/lslightly/qlstat/${queryPathNoExt}.${tgtFmt}
 */
 func decodeResults(cfg *config.Artifact, tgtFmt string) {
 	checkDecodeTargetFmt(tgtFmt)
 
-	// decode bqrs only in query result dir
 	for grpi, grp := range cfg.QueryGrps {
+		dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
 		queries := grp.Queries
-		bar := progressbar.Default(int64(len(queries)))
-		defer bar.Close()
+
+		bar := progressbar.Default(int64(len(queries) * len(dbs)))
 		for _, qScript := range queries {
-			bar.Add(1)
 			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
-			bar.Describe(fmt.Sprintf("Grp %d: Decoding %s dir", grpi, query.Name()))
-			decodeFilesInDir(cfg, tgtFmt, query)
+			for _, db := range dbs {
+				bqrsPath := filepath.Join(db.Path(), "results/lslightly/qlstat", query.PathNoExt()+".bqrs")
+				csvPath := filepath.Join(db.Path(), "results/lslightly/qlstat", query.PathNoExt()+"."+tgtFmt)
+
+				decodeLogDir := filepath.Join(cfg.PassLogDir("decode"), db.Name)
+				utils.MkdirAll(decodeLogDir)
+				decOut, decErr := utils.CreateOutAndErr(filepath.Join(decodeLogDir, query.Name()))
+
+				cmd := exec.Command("codeql", "bqrs", "decode",
+					"--format="+tgtFmt,
+					bqrsPath,
+					"--output="+csvPath)
+				cmd.Stdout = decOut
+				cmd.Stderr = decErr
+				decOut.WriteString(cmd.String() + "\n")
+				_ = cmd.Run()
+				decOut.Close()
+				decErr.Close()
+
+				bar.Describe(fmt.Sprintf("Grp %d: decoding %s/%s", grpi, query.Name(), db.Name))
+				bar.Add(1)
+			}
 		}
+		bar.Close()
 	}
 }
 
-func decodeFilesInDir(cfg *config.Artifact, tgtFmt string, query config.Query) {
-	decodeLogDir := filepath.Join(cfg.PassLogDir("decode"), query.PathNoExt())
-	utils.MkdirAll(decodeLogDir)
-
-	resultRoot := query.DirPath(cfg.ResultRoot)
-	dirEntries, err := os.ReadDir(resultRoot)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var wg sync.WaitGroup
-	for _, de := range dirEntries {
-		if de.IsDir() || filepath.Ext(de.Name()) != ".bqrs" {
-			continue
-		}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			outFile, errFile := utils.CreateOutAndErr(filepath.Join(decodeLogDir, de.Name()))
-			defer outFile.Close()
-			defer errFile.Close()
-			tgtPath := filepath.Join(resultRoot, strings.TrimSuffix(de.Name(), filepath.Ext(de.Name()))+"."+tgtFmt)
-			cmd := exec.Command("codeql", "bqrs", "decode",
-				"--format="+tgtFmt,
-				filepath.Join(resultRoot, de.Name()),
-				"--output="+tgtPath)
-			_ = cmd.Run()
-		}()
-	}
-	wg.Wait()
-}
+// -- CSV collection ------------------------------------------------------
 
 func collectCSVs(cfg *config.Artifact) {
 	for grpi, grp := range cfg.QueryGrps {
@@ -220,26 +248,19 @@ func collectCSVs(cfg *config.Artifact) {
 		for _, qScript := range grp.Queries {
 			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 			bar.Describe(fmt.Sprintf("Grp %d: Collecting for "+query.PathNoExt(), grpi))
-			collectCSVsForQuery(cfg, query)
+			collectCSVsForQuery(cfg, query, grp)
 			bar.Add(1)
 		}
 	}
 }
 
-func collectCSVsForQuery(cfg *config.Artifact, query config.Query) {
-	qResultDir := query.DirPath(cfg.ResultRoot)
-	qResultCSV := qResultDir + ".csv"
+func collectCSVsForQuery(cfg *config.Artifact, query config.Query, grp config.QueryGroup) {
+	qResultCSV := query.DirPath(cfg.ResultRoot) + ".csv"
 
-	// Create or truncate the output CSV file
 	outFile := utils.CreateFile(qResultCSV)
 	defer outFile.Close()
 
-	// Read all CSV files in the result directory
-	files, err := os.ReadDir(qResultDir)
-	if err != nil {
-		log.Fatalf("Error reading directory %s: %v", qResultDir, err)
-	}
-
+	dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
 	var ticket atomic.Int64
 	var headerWritten atomic.Bool
 	var expectedHeader string
@@ -247,33 +268,30 @@ func collectCSVsForQuery(cfg *config.Artifact, query config.Query) {
 	var hasFile bool
 
 	var wg sync.WaitGroup
-	for _, file := range files {
-		if file.IsDir() || filepath.Ext(file.Name()) != ".csv" {
+	for _, db := range dbs {
+		csvPath := filepath.Join(db.Path(), "results/lslightly/qlstat", query.PathNoExt()+".csv")
+
+		// Check if the csv file exists
+		if _, err := os.Stat(csvPath); os.IsNotExist(err) {
 			continue
 		}
 		hasFile = true
 
 		wg.Add(1)
-		go func(file os.DirEntry, qResultDir string) {
+		go func(csvPath, dbName string) {
 			defer wg.Done()
-			// Get repo name from filename (without .csv extension)
-			repoName := strings.TrimSuffix(file.Name(), ".csv")
 
-			// For the first file, write header with repo_name column
-			fpath := filepath.Join(qResultDir, file.Name())
-			// Open the CSV file
-			inFile, err := os.Open(fpath)
+			inFile, err := os.Open(csvPath)
 			if err != nil {
-				log.Fatalf("Error opening file %s: %v", fpath, err)
+				log.Fatalf("Error opening file %s: %v", csvPath, err)
 			}
 			defer inFile.Close()
 
 			scanner := bufio.NewScanner(inFile)
 
 			if !scanner.Scan() {
-				log.Fatalf("Error reading header from %s", fpath)
+				log.Fatalf("Error reading header from %s", csvPath)
 			}
-			// Read header
 			currentHeader := scanner.Text()
 
 			firstFile := ticket.Add(1) == 1
@@ -284,7 +302,7 @@ func collectCSVsForQuery(cfg *config.Artifact, query config.Query) {
 				for !headerWritten.Load() {
 				}
 				if currentHeader != expectedHeader {
-					log.Fatalf("Warning: Header mismatch in file %s. Expected: %s, Got: %s", fpath, expectedHeader, currentHeader)
+					log.Fatalf("Warning: Header mismatch in file %s. Expected: %s, Got: %s", csvPath, expectedHeader, currentHeader)
 				}
 			}
 			lines := make([]string, 0)
@@ -293,10 +311,10 @@ func collectCSVsForQuery(cfg *config.Artifact, query config.Query) {
 				if line == "" {
 					break
 				}
-				lines = append(lines, line+","+repoName)
+				lines = append(lines, line+","+dbName)
 			}
 			contentChan <- strings.Join(lines, "\n")
-		}(file, qResultDir)
+		}(csvPath, db.Name)
 	}
 	go func() {
 		wg.Wait()

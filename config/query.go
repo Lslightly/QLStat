@@ -60,13 +60,3 @@ func (q *Query) ExternalOptions(extroot string) (res []string) {
 	}
 	return
 }
-
-// ExternalsSingleString returns ext1,ext2,...|files:extfile1,extfile2,...
-func (q *Query) ExternalsSingleString() string {
-	plainExts := strings.Join(q.externals, ",")
-	bases := make([]string, 0, len(q.externalFiles))
-	for _, extfile := range q.externalFiles {
-		bases = append(bases, filepath.Base(extfile))
-	}
-	return plainExts + "|files:" + strings.Join(bases, ",")
-}

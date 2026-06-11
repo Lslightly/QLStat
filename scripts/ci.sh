@@ -35,7 +35,7 @@ fi
 
 go run ./cmd/codeql_qdriver -collect ci/malloc_test.yaml
 # check mallocgc time is mapped to CodeQL class instances
-malloc_time_csv="codeqlResult/pprof_ext/malloc_time/malloc_test.csv"
+malloc_time_csv="codeql-db/malloc_test/results/lslightly/qlstat/pprof_ext/malloc_time.csv"
 if [ ! -f "$malloc_time_csv" ]; then
     echo "External Verify Test for mallocgc time mapping Failed: $malloc_time_csv does not exist. Check if the query ran correctly."
     exit 1
@@ -48,7 +48,7 @@ if [ "$(grep -c . "$malloc_time_csv")" -ne 2 ]; then
 fi
 
 # check malloc_line has results
-malloc_line_csv="codeqlResult/pprof_ext/malloc_line/malloc_test.csv"
+malloc_line_csv="codeql-db/malloc_test/results/lslightly/qlstat/pprof_ext/malloc_line.csv"
 if [ ! -f "$malloc_line_csv" ]; then
     echo "External Verify Test for mallocgc time mapping Failed: $malloc_line_csv does not exist. Check if the query ran correctly."
     exit 1
