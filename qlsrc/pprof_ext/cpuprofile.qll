@@ -21,12 +21,15 @@ float timeInUnit(QlBuiltins::BigInt t, string unit, int precision) {
 /**
  * Extension of Profile providing aggregation methods for CPU sampling data.
  */
-class CPUProfile instanceof Profile {
+class CPUProfile extends Profile {
     CPUProfile() {
-        any()
+        super.getPeriodType().getType() = "cpu" and 
+        super.getPeriodType().getUnit() = "nanoseconds" and
+        super.getSampleType(0).getType() = "samples" and
+        super.getSampleType(0).getUnit() = "count" and
+        super.getSampleType(1).getType() = "cpu" and 
+        super.getSampleType(1).getUnit() = "nanoseconds"
     }
-
-    string toString() { result = "CPUProfile " + this.(int).toString() }
 
     /**
      * Sum of all sample values at index 1 (total time in nanoseconds).
@@ -97,6 +100,12 @@ class CPUProfile instanceof Profile {
             sample.containsFunc(funcFullName) and
             sample.containsFunc(focusfuncFullName)
             | sample.getValue(1)
+        )
+    }
+
+    string flameGraphRootFuncName() {
+        exists(Sample sample
+            | sample.getLocation(sample.locationNum()-1).getLastLine().getFunction().getName() = result
         )
     }
 }

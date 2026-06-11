@@ -16,7 +16,7 @@ import profile
  * Each sample also carries a numeric label "bytes" indicating
  * the average block size (AllocBytes / AllocObjects) for that sample.
  */
-class HeapProfile instanceof Profile {
+class HeapProfile extends Profile {
     HeapProfile() {
         // Period type must be ("space", "bytes")
         super.getPeriodType().getType() = "space" and
@@ -33,9 +33,6 @@ class HeapProfile instanceof Profile {
         super.getSampleType(3).getUnit() = "bytes"
     }
 
-    string toString() {
-        result = "HeapProfile " + this.(int).toString()
-    }
 
     // -----------------------------------------------------------------------
     // Sum helpers — total across all samples for each value index
