@@ -19,7 +19,6 @@ import (
 
 	"github.com/Lslightly/qlstat/config"
 	"github.com/Lslightly/qlstat/utils"
-	yaml "github.com/goccy/go-yaml"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -30,10 +29,7 @@ var validFmts = []string{
 	"bqrs",
 }
 
-var cfg config.Artifact
-
 var (
-	configPath      string
 	targetDecodeFmt string
 	onlyDecode      bool
 	doCollect       bool
@@ -55,39 +51,27 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	configPath = flag.Arg(0)
-	parseConfig()
+	cfg := config.UnmarshalArtifact(flag.Arg(0))
 	if cfg.ParallelCore != 0 {
 		runtime.GOMAXPROCS(cfg.ParallelCore)
 	}
 	if !onlyDecode {
-		if _, err := config.ArchiveCurrentIfExist(&cfg, "query"); err != nil {
+		if _, err := config.ArchiveCurrentIfExist(cfg, "query"); err != nil {
 			log.Fatalf("Failed to archive current log dir: %v", err)
 		}
 		for grpi, grp := range cfg.QueryGrps {
 			fmt.Printf("Grp %d: Executing queries\n", grpi)
-			queriesExec(grp)
+			queriesExec(cfg, grp)
 		}
 	}
 	fmt.Println("Decoding results")
-	if _, err := config.ArchiveCurrentIfExist(&cfg, "decode"); err != nil {
+	if _, err := config.ArchiveCurrentIfExist(cfg, "decode"); err != nil {
 		log.Fatalf("Failed to archive current log dir: %v", err)
 	}
-	decodeResults(targetDecodeFmt)
+	decodeResults(cfg, targetDecodeFmt)
 	if doCollect && targetDecodeFmt == "csv" {
 		fmt.Println("Collecting CSVs")
-		collectCSVs()
-	}
-}
-
-func parseConfig() {
-	bs, err := os.ReadFile(configPath)
-	if err != nil {
-		log.Fatalln("error occurs when reading config", configPath, err)
-	}
-	err = yaml.Unmarshal(bs, &cfg)
-	if err != nil {
-		log.Fatalln("error occurs when parsing json", err)
+		collectCSVs(cfg)
 	}
 }
 
@@ -106,7 +90,7 @@ first remove all content in ${config.OutResultRoot}/${qScriptNameNoExt}
 dump error log for ${db} in ${config.OutResultRoot}/${qScriptNameNoExt}/error.log
 dump stdout/stderr for ${db} in ${config.OutResultRoot}/${qScriptNameNoExt}/log/${db}.log
 */
-func queriesExec(grp config.QueryGroup) {
+func queriesExec(cfg *config.Artifact, grp config.QueryGroup) {
 	dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
 	bar := progressbar.Default(int64(len(dbs) * len(grp.Queries)))
 	for _, qScript := range grp.Queries {
@@ -121,7 +105,7 @@ func queriesExec(grp config.QueryGroup) {
 			wg.Add(1)
 			go func(db config.DB, query config.Query) {
 				defer wg.Done()
-				queryForOneDB(db, query)
+				queryForOneDB(cfg, db, query)
 				bar.Describe(fmt.Sprintf("query: %-15s db: %-15s exts: %-15s", query.Name(), db.Name, query.ExternalsSingleString()))
 				bar.Add(1)
 			}(db, query)
@@ -139,7 +123,7 @@ func queriesExec(grp config.QueryGroup) {
 /*
 codeql query run -d=${config.InDBRoot}/${repo} ${config.QueryRoot}/${qScript} --output=${qResultDir}/${repo} --search-path=./qlsrc/lib --external=$pred/${config.dbRoot}/${repo}/ext/$pred.csv
 */
-func queryForOneDB(db config.DB, query config.Query) {
+func queryForOneDB(cfg *config.Artifact, db config.DB, query config.Query) {
 	qResultDir := query.DirPath(cfg.ResultRoot)
 	repoOut, repoErr := utils.CreateOutAndErr(filepath.Join(query.DirPath(cfg.PassLogDir("query")), db.Name))
 	defer repoOut.Close()
@@ -180,7 +164,7 @@ func checkDecodeTargetFmt(tgtFmt string) bool {
 /*
 codeql bqrs decode --format=${tgtFmt} ${path}/${fileBase}.bqrs --output=${path}/${fileBase}.${tgtFmt}
 */
-func decodeResults(tgtFmt string) {
+func decodeResults(cfg *config.Artifact, tgtFmt string) {
 	checkDecodeTargetFmt(tgtFmt)
 
 	// decode bqrs only in query result dir
@@ -192,12 +176,12 @@ func decodeResults(tgtFmt string) {
 			bar.Add(1)
 			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 			bar.Describe(fmt.Sprintf("Grp %d: Decoding %s dir", grpi, query.Name()))
-			decodeFilesInDir(tgtFmt, query)
+			decodeFilesInDir(cfg, tgtFmt, query)
 		}
 	}
 }
 
-func decodeFilesInDir(tgtFmt string, query config.Query) {
+func decodeFilesInDir(cfg *config.Artifact, tgtFmt string, query config.Query) {
 	decodeLogDir := filepath.Join(cfg.PassLogDir("decode"), query.PathNoExt())
 	utils.MkdirAll(decodeLogDir)
 
@@ -228,19 +212,19 @@ func decodeFilesInDir(tgtFmt string, query config.Query) {
 	wg.Wait()
 }
 
-func collectCSVs() {
+func collectCSVs(cfg *config.Artifact) {
 	for grpi, grp := range cfg.QueryGrps {
 		bar := progressbar.Default(int64(len(grp.Queries)))
 		for _, qScript := range grp.Queries {
 			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles)
 			bar.Describe(fmt.Sprintf("Grp %d: Collecting for "+query.PathNoExt(), grpi))
-			collectCSVsForQuery(query)
+			collectCSVsForQuery(cfg, query)
 			bar.Add(1)
 		}
 	}
 }
 
-func collectCSVsForQuery(query config.Query) {
+func collectCSVsForQuery(cfg *config.Artifact, query config.Query) {
 	qResultDir := query.DirPath(cfg.ResultRoot)
 	qResultCSV := qResultDir + ".csv"
 

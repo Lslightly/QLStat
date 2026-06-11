@@ -3,11 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/Lslightly/qlstat/config"
-	"github.com/goccy/go-yaml"
 )
 
 type Options struct {
@@ -34,15 +32,7 @@ func main() {
 		flag.Usage()
 		os.Exit(1)
 	}
-	yamlPath := flag.Arg(0)
-	yamlData, err := os.ReadFile(yamlPath)
-	if err != nil {
-		log.Fatalf("Failed to read config file: %v", err)
-	}
-	cfg := new(config.Artifact)
-	if err := yaml.Unmarshal(yamlData, cfg); err != nil {
-		log.Fatalf("Failed to parse YAML: %v", err)
-	}
+	cfg := config.UnmarshalArtifact(flag.Arg(0))
 	dirSetup(cfg)
 	if !opt.disableClone {
 		batchClone(cfg)

@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -40,6 +41,18 @@ type QueryGroup struct {
 	Queries       []string `yaml:"queries"`
 	Externals     []string `yaml:"externals"`
 	ExternalFiles []string `yaml:"externalFiles"`
+}
+
+func UnmarshalArtifact(filename string) *Artifact {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		log.Fatalf("Failed to read config file: %v", err)
+	}
+	cfg := new(Artifact)
+	if err := yaml.Unmarshal(data, cfg); err != nil {
+		log.Fatalf("Failed to parse YAML: %v", err)
+	}
+	return cfg
 }
 
 // ReadExtsFromFile reads filename and returns a slice of non-empty external predicates' names defined in the file
