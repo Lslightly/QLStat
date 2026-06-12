@@ -14,7 +14,7 @@ import (
 type Artifact struct {
 	RepoRoot     string       `yaml:"repoRoot"`
 	LogRoot      string       `yaml:"logRoot"`
-	Sources      []*GitSource `yaml:"sources"`
+	Repositories []*RepoGroup `yaml:"repositories"`
 	DBRoot       string       `yaml:"dbRoot"`
 	Lang         string       `yaml:"language"`
 	BuildTimeout int          `yaml:"buildTimeout"`
@@ -156,7 +156,7 @@ type reposType int
 
 const (
 	buildSpecific reposType = iota
-	buildWrittenInSources
+	buildWrittenInRepositories
 	buildAll
 )
 
@@ -165,7 +165,7 @@ func getReposType(repos []string) reposType {
 		repo0 := repos[0]
 		switch repo0 {
 		case "-":
-			return buildWrittenInSources
+			return buildWrittenInRepositories
 		case "*":
 			return buildAll
 		}
@@ -175,23 +175,23 @@ func getReposType(repos []string) reposType {
 
 func (art *Artifact) ConvStrSliceToRepoSlice(repos []string) (res []Repo) {
 	switch getReposType(repos) {
-	case buildWrittenInSources:
-		for _, gs := range art.Sources {
-			res = append(res, gs.GetRepos()...)
+	case buildWrittenInRepositories:
+		for _, rg := range art.Repositories {
+			res = append(res, rg.GetRepos()...)
 		}
 		return
 	case buildAll:
-		for _, gs := range art.Sources {
-			res = append(res, gs.reposInDir(art.RepoRoot)...)
+		for _, rg := range art.Repositories {
+			res = append(res, rg.reposInDir(art.RepoRoot)...)
 		}
 		return
 	default:
-		for _, gs := range art.Sources {
-			gs.calcFullName2RepoCache()
+		for _, rg := range art.Repositories {
+			rg.calcRepoCache()
 		}
 		for _, fullname := range repos {
-			for _, gs := range art.Sources {
-				if repo, ok := gs.fullName2RepoCache[fullname]; ok {
+			for _, rg := range art.Repositories {
+				if repo, ok := rg.repoCache[fullname]; ok {
 					res = append(res, repo)
 				}
 			}

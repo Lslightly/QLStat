@@ -18,7 +18,7 @@ qlsrc/                 # CodeQL query sources
 
 ```bash
 repos/                 # source code (cloned by batch_clone_build)
-   github.com/         #   hostname from GitSource.Prefix
+   github.com/         #   user-specified subdirectory (Repositories[*].Dir)
       repo0/
    test/
       repo1/
@@ -62,6 +62,25 @@ logs/                  # runtime logs, archived automatically
       archive/<ts>/
 ```
 
+## Repository Configuration
+
+Repositories are defined under the `repositories` section. Each entry can have:
+
+| Field | Required | Meaning |
+|-------|----------|---------|
+| `urlPrefix` | No | If set, `urlPrefix + repo name` forms the git clone URL. If empty, the repo is local-only (no clone). |
+| `dir` | No | Subdirectory under `repoRoot/` where repos are stored. If empty, repos go directly under `repoRoot/`. |
+| `repos` | Yes | List of repository names (or `"org/repo branch"` to pin a branch/commit). |
+
+The combination of `urlPrefix` and `dir` determines the clone behavior and disk layout:
+
+| urlPrefix | dir | Behavior | On-disk path |
+|-----------|-----|----------|--------------|
+| `https://github.com/` | `github.com/` | clone from remote | `repoRoot/github.com/<repo>/` |
+| `https://github.com/` | *(empty)* | clone from remote | `repoRoot/<repo>/` |
+| *(empty)* | `local/` | local only, skip clone | `repoRoot/local/<repo>/` |
+| *(empty)* | *(empty)* | local only, skip clone | `repoRoot/<repo>/` |
+
 ## Workflow Pipeline
 
 The toolchain has 6 stages. Each takes input from its predecessor and writes
@@ -69,11 +88,11 @@ to a well-known directory. Stages are independent — you can re-run any stage
 without re-running earlier ones (provided the input data already exists).
 
 ```
-                   sources[*].fullnames
+                   repositories[*].repos
                            │
                            ▼
                     ┌──────────────┐
-                    │ 1. Clone     │──→ repoRoot/<host>/<repo>/
+                    │ 1. Clone     │──→ repoRoot/<Dir>/<repo>/
                     └──────────────┘
                            │
                            ▼
@@ -110,11 +129,12 @@ without re-running earlier ones (provided the input data already exists).
 ### 1. Clone — `batch_clone_build` (Phase: clone)
 
 ```
-Input:   YAML.sources[*].fullnames          "org/repo [branch]"
-         YAML.sources[*].prefix             "https://github.com/"
-Process: git clone <prefix+fullname>.git    repoRoot/<host>/<DirBaseName>
+Input:   YAML.repositories[*].repos          "org/repo [branch]"
+         YAML.repositories[*].urlPrefix      "https://github.com/"
+Process: git clone <urlPrefix+repos>.git     repoRoot/<Dir>/<DirBaseName>
+         (or repoRoot/<DirBaseName> when Dir is empty)
          or (if exists) git checkout <branch>
-Output:  repoRoot/<host>/<DirBaseName>/     source code on disk
+Output:  repoRoot/<Dir>/<DirBaseName>/       source code on disk
 ```
 
 The clone phase only touches `repoRoot/`. It populates the source tree that all
@@ -123,7 +143,7 @@ downstream phases depend on. Branch/commit pinning happens here via `Checkout`.
 ### 2. Build — `batch_clone_build` (Phase: build)
 
 ```
-Input:   repoRoot/<host>/<DirBaseName>/      source code
+Input:   repoRoot/<Dir>/<DirBaseName>/       source code
          YAML.BuildGrps[*].BuildRepos        which repos to build
          YAML.BuildGrps[*].DBName            custom database name (optional, defaults to repo DirBaseName)
          YAML.BuildGrps[*].BuildCmd          command | script (empty/omitted = auto-detect)
@@ -146,7 +166,7 @@ database under `dbRoot/`.
 ### 3. External Predicate Generation — `batch_clone_build` (Phase: extgen)
 
 ```
-Input:   repoRoot/<host>/<DirBaseName>/     source code (for compilation)
+Input:   repoRoot/<Dir>/<DirBaseName>/      source code (for compilation)
          YAML.BuildGrps[*].ExtGenScript     "goescape" | custom script | "" (skip)
          YAML.BuildGrps[*].BuildRepos       which repos to process
          dbRoot/<DirBaseName>/              target database (for ext dir)

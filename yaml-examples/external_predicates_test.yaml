@@ -3,9 +3,9 @@ repoRoot: repos # repoRoot stores all repositories
 dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
 
 # clone
-sources:
-  - prefix: https://test/ # clone url prefix
-    fullnames:
+repositories:
+  - dir: test/
+    repos:
       # - aliasFieldAcc
       # - assignToInterface
       # - convInterface
@@ -25,7 +25,7 @@ sources:
 language: go # language to analyze
 buildTimeout: 3600 # timeout for building repository
 buildGrps:
-- buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+- buildRepos: # "*" means all repositories. "-" means repositories defined in the "repositories" section. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
     - malloc_test
   buildCmd: yaml-examples/build/malloc_test.sh
   extgenScript: yaml-examples/extgens/malloc_test.sh

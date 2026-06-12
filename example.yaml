@@ -3,21 +3,22 @@ repoRoot: repos # repoRoot stores all repositories
 dbRoot: codeql-db # dbRoot stores all databases created by codeql indexed by repository name
 
 # clone
-sources:
-  - prefix: https://github.com/ # clone url prefix
-    fullnames:
+repositories:
+  - urlPrefix: https://github.com/
+    dir: github.com
+    repos:
       - junegunn/fzf
       - gookit/filter
       - rclone/rclone v1.72.1 # you can specify branch/commit hash here with only spaces in between org/repo and branch. If repository eixsts, git checkout will be used to switch branch
-  - prefix: https://test/
-    fullnames:
+  - dir: test/
+    repos:
       - false-sharing
 
 # build database
 language: go # language to analyze
 buildTimeout: 3600 # timeout for building repository
 buildGrps:
-  - buildRepos: # "*" means all repositories. "-" means repositories defined in "sources" attribute. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
+  - buildRepos: # "*" means all repositories. "-" means repositories defined in the "repositories" section. You can also specify fullname of repositories to force re-build. Note that repositories with same fullname in different source will be re-built also.
     - "-"
     # buildCmd will be executed in the root directory of buildRepos. The behavior is decided by codeql. If a custom build script is specified, then the absolute path will be used.
     #
@@ -51,7 +52,7 @@ queryconfig:
   queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   parallelCore: 20 # parallel cores to run query
   queryGrps:
-    - queryDBs: # "*" means all repositories. "-" means repositories defined in "sources" attribute. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
+    - queryDBs: # "*" means all repositories. "-" means repositories defined in the "repositories" section. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.
         - false-sharing
         - rclone
       queries: # queries

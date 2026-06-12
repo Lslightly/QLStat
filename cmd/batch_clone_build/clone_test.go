@@ -23,6 +23,6 @@ func TestCloneBranch(t *testing.T) {
 		assert.Nil(t, err, err.Error()+"\nstdout:"+outbuf.String()+"\nstderr:"+errbuf.String())
 	}
 	outbuf.Reset()
-	assert.Nil(t, utils.RuncmdWithBuf(filepath.Join(utils.ProjectRoot(), "repos/github.com/zhihu-parallel-pi-calc"), &outbuf, nil, "git", "branch", "--show-current"))
+	assert.Nil(t, utils.RuncmdWithBuf(filepath.Join(utils.ProjectRoot(), "repos/zhihu-parallel-pi-calc"), &outbuf, nil, "git", "branch", "--show-current"))
 	assert.Equal(t, "QLStat-test", strings.TrimSpace(outbuf.String()))
 }

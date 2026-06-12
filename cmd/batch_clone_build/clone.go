@@ -40,9 +40,9 @@ func batchClone(cfg *config.Artifact) {
 	statusChan := make(chan cloneStatus)
 	repoCnt := 0
 	var wg sync.WaitGroup
-	for _, gs := range cfg.Sources {
-		gs.CreateRepoRootDir(cfg.RepoRoot)
-		for _, repo := range gs.GetRepos() {
+	for _, rg := range cfg.Repositories {
+		rg.CreateRepoRootDir(cfg.RepoRoot)
+		for _, repo := range rg.GetRepos() {
 			wg.Add(1)
 			repoCnt++
 			go func() {
