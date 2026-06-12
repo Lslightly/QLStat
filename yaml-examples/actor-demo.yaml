@@ -20,9 +20,9 @@ buildGrps:
 queryconfig:
   resultRoot: codeqlResult # resultRoot stores all query results. Example: <resultRoot>/<path/to/query>/<repo>.csv
   parallelCore: 20 # parallel cores to run query
-  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   queryGrps:
-    - queryDBs:
+    - queryRoot: std # built-in query root (projectRoot/qlsrc). std is default if empty.
+      queryDBs:
         - actor-demo
       queries:
         - pprof_ext/cpu_flamegraph_root_cum_desc.ql

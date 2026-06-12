@@ -9,4 +9,3 @@ repositories:
 
 queryconfig:
   resultRoot: codeqlResult
-  queryRoot: qlsrc
