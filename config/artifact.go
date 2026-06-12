@@ -37,6 +37,7 @@ type BuildGroup struct {
 
 type QueryGroup struct {
 	QueryRoot     string   `yaml:"queryRoot"`
+	ExternalRoot  string   `yaml:"externalRoot"`
 	QueryDBs      []string `yaml:"queryDBs"`
 	Queries       []string `yaml:"queries"`
 	Externals     []string `yaml:"externals"`
@@ -51,6 +52,16 @@ func (g *QueryGroup) ResolvedQueryRoot() string {
 		return filepath.Join(utils.ProjectRoot(), "qlsrc")
 	}
 	return g.QueryRoot
+}
+
+// ResolvedExternalRoot returns the absolute path for external predicate files.
+// "std" or empty → <projectRoot>/qlsrc (same as built-in query root).
+// Other values are returned as-is (absolute path or CWD-relative).
+func (g *QueryGroup) ResolvedExternalRoot() string {
+	if g.ExternalRoot == "" || g.ExternalRoot == "std" {
+		return filepath.Join(utils.ProjectRoot(), "qlsrc")
+	}
+	return g.ExternalRoot
 }
 
 func UnmarshalArtifact(filename string) *Artifact {

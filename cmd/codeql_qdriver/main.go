@@ -170,7 +170,7 @@ func queriesExec(cfg *config.Artifact, grp config.QueryGroup, queryRoot string, 
 	// Create Query objects for all queries in the group
 	queries := make([]config.Query, len(grp.Queries))
 	for i, qScript := range grp.Queries {
-		queries[i] = config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles, queryRoot)
+		queries[i] = config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles, grp.ResolvedExternalRoot())
 	}
 
 	bar := progressbar.Default(int64(len(dbs)))
@@ -207,13 +207,12 @@ func decodeResults(cfg *config.Artifact, tgtFmt string) {
 	checkDecodeTargetFmt(tgtFmt)
 
 	for grpi, grp := range cfg.QueryGrps {
-		queryRoot := grp.ResolvedQueryRoot()
 		dbs := cfg.ConvStrSliceToDBSlice(grp.QueryDBs)
 		queries := grp.Queries
 
 		bar := progressbar.Default(int64(len(queries) * len(dbs)))
 		for _, qScript := range queries {
-			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles, queryRoot)
+			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles, grp.ResolvedExternalRoot())
 			for _, db := range dbs {
 				bqrsPath := filepath.Join(db.Path(), "results/lslightly/qlstat", query.PathNoExt()+".bqrs")
 				csvPath := filepath.Join(db.Path(), "results/lslightly/qlstat", query.PathNoExt()+"."+tgtFmt)
@@ -245,10 +244,9 @@ func decodeResults(cfg *config.Artifact, tgtFmt string) {
 
 func collectCSVs(cfg *config.Artifact) {
 	for grpi, grp := range cfg.QueryGrps {
-		queryRoot := grp.ResolvedQueryRoot()
 		bar := progressbar.Default(int64(len(grp.Queries)))
 		for _, qScript := range grp.Queries {
-			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles, queryRoot)
+			query := config.CreateQuery(qScript, grp.Externals, grp.ExternalFiles, grp.ResolvedExternalRoot())
 			bar.Describe(fmt.Sprintf("Grp %d: Collecting for "+query.PathNoExt(), grpi))
 			collectCSVsForQuery(cfg, query, grp)
 			bar.Add(1)

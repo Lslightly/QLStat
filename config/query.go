@@ -14,7 +14,7 @@ type Query struct {
 	cacheEntriesForFiles []string // cache external entries for externalFiles
 }
 
-func CreateQuery(path string, externals []string, externalFiles []string, queryRoot string) Query {
+func CreateQuery(path string, externals []string, externalFiles []string, externalRoot string) Query {
 	if filepath.Ext(path) != ".ql" {
 		log.Fatalf("Suffix of query source %s is not .ql.", path)
 	}
@@ -22,7 +22,7 @@ func CreateQuery(path string, externals []string, externalFiles []string, queryR
 	for _, extfile := range externalFiles {
 		resolvedPath := extfile
 		if !filepath.IsAbs(extfile) {
-			resolvedPath = filepath.Join(queryRoot, extfile)
+			resolvedPath = filepath.Join(externalRoot, extfile)
 		}
 		exts, err := ReadExtsFromFile(resolvedPath)
 		if err != nil {
