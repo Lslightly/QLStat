@@ -20,7 +20,6 @@ buildGrps:
 # query
 queryconfig:
   resultRoot: codeqlResult # resultRoot only for -collect csv. Bqrs/csv per db: <dbPath>/results/lslightly/qlstat/<queryPathNoExt>.<fmt>
-  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   parallelCore: 20 # parallel cores to run query
   queryGrps:
     - queryDBs: # "*" means all repositories. "-" means repositories defined in the "repositories" section. Otherwise, use fullnames. Note that repositories with same fullname in different source will be queried.

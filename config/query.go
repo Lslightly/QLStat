@@ -14,13 +14,17 @@ type Query struct {
 	cacheEntriesForFiles []string // cache external entries for externalFiles
 }
 
-func CreateQuery(path string, externals []string, externalFiles []string) Query {
+func CreateQuery(path string, externals []string, externalFiles []string, queryRoot string) Query {
 	if filepath.Ext(path) != ".ql" {
 		log.Fatalf("Suffix of query source %s is not .ql.", path)
 	}
-	cache := make([]string, len(externalFiles)*5)
+	cache := make([]string, 0, len(externalFiles)*5)
 	for _, extfile := range externalFiles {
-		exts, err := ReadExtsFromFile(extfile)
+		resolvedPath := extfile
+		if !filepath.IsAbs(extfile) {
+			resolvedPath = filepath.Join(queryRoot, extfile)
+		}
+		exts, err := ReadExtsFromFile(resolvedPath)
 		if err != nil {
 			log.Fatalf("Failed to read external file %s: %v", extfile, err)
 		}

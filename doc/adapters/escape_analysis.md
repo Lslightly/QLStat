@@ -38,6 +38,7 @@ queryconfig:
 ```
 
 In this configuration:
+- `queryRoot` is optional per query group. If omitted, it defaults to `std`, which resolves to the built-in query library at `<projectRoot>/qlsrc`. Custom paths can be specified instead to use queries outside the built-in library.
 - `extgenScript: goescape` instructs the system to compile repositories with escape analysis enabled
   - Note that if you use custom script, 4 environment variables will be set. You can use them in your custom script.
     - `REPO_DIR`: The directory path of the repository

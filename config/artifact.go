@@ -24,7 +24,6 @@ type Artifact struct {
 
 type QueryConfig struct {
 	ResultRoot   string       `yaml:"resultRoot"`
-	QueryRoot    string       `yaml:"queryRoot"`
 	ParallelCore int          `yaml:"parallelCore"`
 	QueryGrps    []QueryGroup `yaml:"queryGrps"`
 }
@@ -37,10 +36,21 @@ type BuildGroup struct {
 }
 
 type QueryGroup struct {
+	QueryRoot     string   `yaml:"queryRoot"`
 	QueryDBs      []string `yaml:"queryDBs"`
 	Queries       []string `yaml:"queries"`
 	Externals     []string `yaml:"externals"`
 	ExternalFiles []string `yaml:"externalFiles"`
+}
+
+// ResolvedQueryRoot returns the absolute path for this group's query root.
+// "std" or empty → <projectRoot>/qlsrc (built-in queries).
+// Other values are returned as-is (absolute path or CWD-relative).
+func (g *QueryGroup) ResolvedQueryRoot() string {
+	if g.QueryRoot == "" || g.QueryRoot == "std" {
+		return filepath.Join(utils.ProjectRoot(), "qlsrc")
+	}
+	return g.QueryRoot
 }
 
 func UnmarshalArtifact(filename string) *Artifact {
@@ -67,10 +77,6 @@ func UnmarshalArtifact(filename string) *Artifact {
 	if cfg.ResultRoot == "" {
 		cfg.ResultRoot = filepath.Join(utils.ProjectRoot(), "codeqlResult")
 		log.Println("\033[33mWARNING: resultRoot is empty, set to default value:", cfg.ResultRoot, "\033[0m")
-	}
-	if cfg.QueryRoot == "" {
-		cfg.QueryRoot = filepath.Join(utils.ProjectRoot(), "qlsrc")
-		log.Println("\033[33mWARNING: queryRoot is empty, set to default value:", cfg.QueryRoot, "\033[0m")
 	}
 	return cfg
 }

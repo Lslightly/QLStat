@@ -33,7 +33,6 @@ buildGrps:
 queryconfig:
   resultRoot: codeqlResult # resultRoot only for -collect csv. Bqrs/csv per db: <dbPath>/results/lslightly/qlstat/<queryPathNoExt>.<fmt>
   parallelCore: 20 # parallel cores to run query
-  queryRoot: qlsrc # query root. There should be codeql-pack.yaml in queryRoot directory
   queryGrps:
     - queryDBs:
       - onlytest

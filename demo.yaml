@@ -62,7 +62,6 @@ buildGrps:
 #   "-" — all databases defined in buildGrps
 queryconfig:
   resultRoot: codeqlResult
-  queryRoot: qlsrc
   parallelCore: 20
   queryGrps:
     - queryDBs:
