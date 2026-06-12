@@ -17,7 +17,6 @@ func dirSetup(cfg *config.Artifact) {
 		cfg.RepoRoot,
 		cfg.LogRoot,
 		cfg.DBRoot,
-		cfg.ResultRoot,
 	} {
 		if dir == "" {
 			continue
