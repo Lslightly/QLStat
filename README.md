@@ -110,7 +110,7 @@ Contributions are welcome! If you encounter any issues while using QLStat, or ha
 
 @article{li2026empiricalMemPerfSafetyGo,
     title = {Go语言程序的内存性能与安全问题实证研究},
-    author = {李清伟,丁伯尧,张昱,陈金宝},
+    author = {李清伟 and 丁伯尧 and 张昱 and 陈金宝},
     journal = {软件学报},
     volume = {37},
     number = {3},
