@@ -1,7 +1,7 @@
 ---
-library: false
+library: true
 warnOnImplicitThis: false
 name: lslightly/qlstat
-version: 1.0.0
+version: 1.1.0
 dependencies:
-  codeql/go-all: ^0.7.5
+  codeql/go-all: 7.1.2
