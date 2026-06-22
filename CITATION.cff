@@ -1,0 +1,82 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: QLStat
+message: >-
+  Analyze Real World Project Batch with Declarative Static
+  Analysis based on CodeQL
+type: software
+authors:
+  - given-names: Qingwei
+    family-names: Li
+    email: lqw332664203@ustc.edu.cn
+    affiliation: University of Science and Technology of China
+    orcid: 'https://orcid.org/0009-0002-3888-2435'
+  - given-names: Boyao
+    family-names: Ding
+    email: via@mail.ustc.edu.cn
+    affiliation: University of Science and Technology of China
+    orcid: 'https://orcid.org/0009-0009-4208-7961'
+  - orcid: 'https://orcid.org/0000-0001-6638-6442'
+    affiliation: University of Science and Technology of China
+    email: yuzhang@ustc.edu.cn
+    given-names: Yu
+    family-names: Zhang
+  - orcid: 'https://orcid.org/0009-0005-7061-1178'
+    given-names: Jinbao
+    family-names: Chen
+    email: zkd18cjb@mail.ustc.edu.cn
+    affiliation: University of Science and Technology of China
+identifiers:
+  - type: doi
+    value: 10.13328/j.cnki.jos.007464
+repository-code: 'https://github.com/s4plus/QLStat'
+abstract: >-
+  The Go programming language (Golang), as an emerging
+  programming language, achieves efficient automatic memory
+  management through compile-time escape analysis and
+  runtime garbage collection. It also provides built-in data
+  types such as interface, slice, and map, which
+  significantly enhance development efficiency and program
+  performance. However, these features also introduce memory
+  performance and safety challenges that differ from those
+  in traditional languages like C/C++. This study uses
+  static code analysis to empirically study memory
+  performance and safety problems in Go programs. The
+  framework PatStat, designed based on CodeQL, is employed
+  to analyze open-source repositories on GitHub. This
+  framework uses the declarative language QL to examine code
+  patterns related to memory performance in open-source
+  repositories, facilitating both manual summarization and
+  automatic detection of memory safety problems. The
+  research covers memory access characteristics and patterns
+  of memory safety problems. An analysis of 996 Go
+  open-source projects, updated within the past year,
+  reveals that field accesses and dereference operations
+  account for significant portions of memory access in Go
+  programs, at 25.44% and 17.63%, respectively. This
+  indicates the importance of field sensitivity and
+  points-to analysis in Go program analysis and
+  optimization. Moreover, implicit memory allocation
+  resulting from Go’s unique interface type conversions is
+  another key area for optimization. Through manual analysis
+  of 130 Issues involving memory leaks, invalid memory
+  addresses or null pointer dereferences, and dangling
+  pointers, the study identifies 10 Issue patterns, noting
+  that dangling pointer problems are rare in Go. These
+  Issues typically require around 30 days for resolution but
+  often demand only a few dozen lines of code changes. The
+  findings offer insights for optimizing Go programs and
+  mitigating memory safety concerns. Furthermore, a linter
+  is developed to detect the Issue pattern, which involves
+  the assignment of a slice expression that may lead to
+  memory leaks. This tool identifies 6 Issues in real-world
+  projects, one of which receives positive feedback.
+keywords:
+  - Go
+  - memory performance
+  - static code analysis
+  - memory safety
+  - empirical study
+license: Apache-2.0
